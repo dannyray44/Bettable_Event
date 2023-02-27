@@ -1,44 +1,63 @@
+from __future__ import annotations
+
+import enum
 import inspect
 import itertools
+import json
 import typing
-from enum import Enum
+
+_child_values_dict: typing.Dict[typing.Type['Processable'], typing.Tuple[itertools.count, typing.Mapping[str, inspect.Parameter]]] = {}
 
 class Processable:
-    __id_iterators = {}
-    __signiture_parameters = {}
-    required_attributes: typing.List[str]
+    _required_attributes: typing.List[str] = []
     
     def __init__(self) -> None:
         cls: typing.Type[Processable] = type(self)
-        if cls not in self.__id_iterators:
-            self.__id_iterators[cls] = itertools.count()
-            self.__signiture_parameters[cls] = inspect.signature(cls).parameters
-        self._id = next(self.__id_iterators[cls])
+        if cls not in _child_values_dict:
+            _child_values_dict[cls] = (
+                itertools.count(),
+                inspect.signature(cls).parameters
+                )
+        self.__id = next(_child_values_dict[cls][0])
 
-    def to_reduced_dict(self) -> dict:
-        result = {'_id': self._id}
-        for attribute_str in self.required_attributes:
-            value = getattr(self, attribute_str)
-            if value == self.__signiture_parameters[type(self)][attribute_str].default:
-                continue
+    def to_json(self) -> str:
+        return json.dumps(self, default=__ProcessableEncoder)
+    
+    #TODO: def update_self_from_json
 
-            if isinstance(value, Enum):
-                result[attribute_str] = value.value
-                continue
-        
-            if not isinstance(value, list):
-                result[attribute_str] = value
-                continue
-           
-            result[attribute_str] = []
-            for sub_val in value:
-                if issubclass(type(sub_val), Processable):
-                    result[attribute_str].append(sub_val.to_reduced_dict())
-                else:
-                    result[attribute_str].append(sub_val)
+    @classmethod
+    def from_dict(cls, input_dict: dict) -> typing.Type[Processable]:
+        temp_id = input_dict.pop('__id', -1)
+        for kwarg_key in input_dict:
+            init_kwarg = _child_values_dict[cls][1].get(kwarg_key)
+            if init_kwarg:
+                if (hasattr(init_kwarg.annotation, '__args__') and
+                        len(init_kwarg.annotation.__args__) > 0 and 
+                        issubclass(init_kwarg.annotation.__args__[0], Processable)):
+                    input_dict[kwarg_key] = [init_kwarg.annotation.__args__[0].from_dict(inst) for inst in input_dict[kwarg_key]]
 
+        result = cls(**input_dict)
+        if temp_id != -1:
+            result.__id = temp_id
         return result
 
-    def update_from_dict(self, value_dict: dict) -> None:
-        for key, val in value_dict.items():
-            setattr(self, key, val)
+    @classmethod
+    def from_json(cls, json_str: str) -> typing.Type[Processable]:
+        kwargs = json.loads(json_str)
+        return cls.from_dict(kwargs)
+
+
+def __ProcessableEncoder(obj: typing.Type[Processable]):
+    result = {'__id': obj._Processable__id}
+    for attribute in obj._required_attributes:
+        value = getattr(obj, attribute)
+
+        if value == _child_values_dict[type(obj)][1][attribute].default:
+            continue
+
+        if isinstance(value, enum.Enum):
+            value = value.value
+
+        result[attribute] = value
+
+    return result
