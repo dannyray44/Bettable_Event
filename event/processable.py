@@ -6,6 +6,8 @@ import itertools
 import json
 import typing
 
+JsonDumpTypes = typing.Union[dict, list, str, int, float, bool]
+
 _child_values_dict: typing.Dict[typing.Type['Processable'], typing.Tuple[itertools.count, typing.Mapping[str, inspect.Parameter]]] = {}
 
 class Processable:
@@ -21,21 +23,51 @@ class Processable:
         self.__id = next(_child_values_dict[cls][0])
 
     def to_json(self) -> str:
-        return json.dumps(self, default=__ProcessableEncoder)
+        return json.dumps(self, default=_ProcessableEncoder)
     
-    #TODO: def update_self_from_json
+    def _update_child_from_dict(self, input_dict: dict) -> None:
+        for key, value in input_dict.items():
+            self._update_attribute_from_json_var(key, value)
+
+    def _update_child_list_from_list(self, child_list: typing.List[typing.Type[Processable]], input_list: typing.List[dict]) -> None:
+        for item in input_list:
+            if not '__id' in item:
+                raise KeyError('In order to update a list of subclasses from ')
+
+    def _update_attribute_from_json_var(self, attribute_name: str, new_value: JsonDumpTypes) -> None:
+        attribute = getattr(self, attribute_name, None)
+
+        if issubclass(type(attribute), Processable):
+            if isinstance(new_value, dict):
+                attribute._update_child_from_dict(new_value)
+            elif isinstance(new_value, list) and all(isinstance(item, dict) for item in new_value):
+                for item in new_value:
+                    if not '__id' in item:
+                        attribute.append(item)
+                        continue
+                    if item['__id'] == attribute.__id:
+                        attribute._update_child_from_dict(item)
+            else:
+                raise TypeError('Child of Processable: %s must be updated from Dict or List[Dict] not %s', type(attribute), new_value)
+
+
+        elif isinstance(attribute, list):
+            if not isinstance(new_value, list):
+                raise TypeError('Attribute %s is type:List and must be updated from list, not %s', attribute, new_value)
+            for sub_attribute in attribute:
+                if issubclass(type(sub_attribute), Processable) and :
+                    sub_attribute._update_attribute_from_json_var()         ###TODO rethink, maybe @static?
+
+        else:
+
+    
+    def update_self_from_json(self, json_str: str) -> None:
+        json_dict = json.loads(json_str)
+        self._update_child_from_dict(json_dict)
 
     @classmethod
-    def from_dict(cls, input_dict: dict) -> typing.Type[Processable]:
+    def _from_dict(cls, input_dict: dict) -> typing.Type[Processable]:
         temp_id = input_dict.pop('__id', -1)
-        for kwarg_key in input_dict:
-            init_kwarg = _child_values_dict[cls][1].get(kwarg_key)
-            if init_kwarg:
-                if (hasattr(init_kwarg.annotation, '__args__') and
-                        len(init_kwarg.annotation.__args__) > 0 and 
-                        issubclass(init_kwarg.annotation.__args__[0], Processable)):
-                    input_dict[kwarg_key] = [init_kwarg.annotation.__args__[0].from_dict(inst) for inst in input_dict[kwarg_key]]
-
         result = cls(**input_dict)
         if temp_id != -1:
             result.__id = temp_id
@@ -44,10 +76,10 @@ class Processable:
     @classmethod
     def from_json(cls, json_str: str) -> typing.Type[Processable]:
         kwargs = json.loads(json_str)
-        return cls.from_dict(kwargs)
+        return cls._from_dict(kwargs)
 
 
-def __ProcessableEncoder(obj: typing.Type[Processable]):
+def _ProcessableEncoder(obj: typing.Type[Processable]):
     result = {'__id': obj._Processable__id}
     for attribute in obj._required_attributes:
         value = getattr(obj, attribute)
