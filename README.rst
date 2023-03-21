@@ -1,4 +1,14 @@
-Sample Module Repository
-========================
+Events handler for WinWise
+==========================
 
-A simple class for handeling information about events that can be wagered on and the sites where the wagers can happen.
+A simple class structure designed to help make event handling more accessable.
+
+# Structure
+Abstract:
+-----------------
+- Each Event contains a list of Bookmaker. 
+- Each Bookmaker contains a list of Bet. 
+- Each Bet contains a list of BetValue. 
+
+Examples:
+---------
