@@ -7,6 +7,7 @@ from .metadata import BetType
 __child_values_dict: typing.Dict[typing.Type['__Processable'], typing.Tuple[itertools.count, typing.Mapping[str, inspect.Parameter]]] = {}
 
 class __Processable:
+    """A base class for objects that can be converted to and from dictionaries and json."""
     _required_attributes: typing.Optional[typing.List[str]] = None
     _nested_list: typing.Optional[typing.Tuple[str, typing.Type['__Processable']]] = None
 
@@ -21,12 +22,16 @@ class __Processable:
             self.__id = next(__child_values_dict[cls][0])
 
     def as_dict(self) -> typing.Dict[str, typing.Any]:
+        """Returns a dictionary representation of the object, with the exception of the (privte) __id attribute
+        """
         result = {}
         if self._required_attributes:
             for attribute in self._required_attributes:
-                default_val = __child_values_dict[type(self)][1].get(attribute).default
+                parameter = __child_values_dict[type(self)][1].get(attribute)
+                if not parameter:
+                    raise RuntimeError(f'Attribute {attribute} not found in {type(self)}')
                 current_val = getattr(self, attribute)
-                if current_val != default_val:
+                if current_val != parameter.default:
                     result[attribute] = current_val
 
         if self._nested_list:
@@ -38,10 +43,26 @@ class __Processable:
         return result
 
     def as_json(self, indent: typing.Optional[int] = None) -> str:
+        """Returns a json representation of the object, with the exception of the (privte) __id attribute.
+        
+        Args:
+            indent: If not None, the json will be indented by this amount.
+
+        Returns:
+            str: A json representation of the object.
+        """
         return json.dumps(self.as_dict(), indent= indent)
 
     @classmethod
     def from_dict(cls, data: typing.Dict[str, typing.Any]) -> '__Processable':
+        """Creates an instance of the class from a dictionary representation of the object.
+        
+        Args:
+            data: A dictionary representation of the object.
+            
+        Returns:
+            __Processable: An instance of the class.
+        """
         kwargs = {}
         if cls._required_attributes:
             for attribute in cls._required_attributes:
@@ -60,9 +81,24 @@ class __Processable:
 
     @classmethod
     def from_json(cls, json_str: str) -> '__Processable':
+        """Creates an instance of the class from a json representation of the object.
+        
+        Args:
+            json_str: A json representation of the object.
+            
+        Returns:
+            __Processable: An instance of the class.
+        """
         return cls.from_dict(json.loads(json_str))
 
     def update_from_dict(self, data: typing.Dict[str, typing.Any]) -> None:
+        """Updates the object from a dictionary representation of the object. Any attributes not in 
+        the dictionary will be left unchanged. Any nested lists will have there corosponding
+        objects updated according to their __id attribute.
+        
+        Args:
+            data: A dictionary representation of the object.
+        """
         if self._nested_list and self._nested_list[0] in data:
             nested_data: typing.List[dict] = data.pop(self._nested_list[0])
             nested_attribute_list: typing.List[__Processable] = getattr(self, self._nested_list[0])
@@ -80,6 +116,13 @@ class __Processable:
             setattr(self, key, data[key])
 
     def update_from_json(self, json_str: str) -> None:
+        """Updates the object from a json representation of the object. Any attributes not in
+        the json will be left unchanged. Any nested lists will have there corosponding
+        objects updated according to their __id attribute.
+        
+        Args:
+            json_str: A json representation of the object.
+        """
         self.update_from_dict(json.loads(json_str))
 
 
@@ -146,3 +189,6 @@ class Event(__Processable):
             bookmakers = []
         self.bookmakers = bookmakers
         super().__init__()
+
+
+range(,)

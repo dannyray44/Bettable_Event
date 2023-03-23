@@ -1,6 +1,13 @@
 from enum import Enum
 
 class BetType(Enum):
+    """Bet type enum
+    
+    ID: | Name:                     Acce
+    ----|-----------------------|
+    1   | Team_ExactGoalsNumber |
+    1 - Match Winner
+    """
     MatchWinner = 1
     HomeAway = 2
     AsianHandicap = 4
