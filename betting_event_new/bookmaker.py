@@ -10,4 +10,3 @@ class Bookmaker:
         self.wager_limit = wager_limit
 
         self.__id = next(self.__ID_COUNTER)
-
