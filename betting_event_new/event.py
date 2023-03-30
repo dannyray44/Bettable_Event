@@ -12,6 +12,12 @@ class Event:
 
     def add_bet(self, bet: Bet) -> 'Event':
         """Adds a bet to the event. If the bet already exists, it will be updated.
+
+        Args:
+            bet (Bet): The bet to add.
+        
+        Returns:
+            Event: This event object.
         """
         try:
             index = self.bets.index(bet)
