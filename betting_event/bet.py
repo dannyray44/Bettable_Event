@@ -154,11 +154,13 @@ class Bet:
         Returns:
             dict: The bet as a dictionary.
         """
+        
         return {
             "bet_type": self.bet_type.value,
             "value": self.value,
             "odds": self.odds,
-            "bookmaker": self.bookmaker.as_dict(),
+            "bookmaker": self.bookmaker,
+            "bookmaker_id": self.bookmaker.__id,
             "lay": self.lay,
             "volume": self.volume,
             "previous_wager": self.previous_wager,
@@ -166,21 +168,21 @@ class Bet:
         }
 
     @classmethod
-    def from_dict(cls, bet_dict: dict) -> 'Bet':
+    def from_dict(cls, __bet_dict: dict) -> 'Bet':
         """Creates a bet from a dictionary.
 
         Args:
-            bet_dict (dict): The dictionary to create the bet from.
+            __bet_dict (dict): The dictionary to create the bet from.
 
         Returns:
             Bet: The bet created from the dictionary.
         """
         return cls(
-            bet_dict["bet_type"],
-            bet_dict["value"],
-            bet_dict["odds"],
-            Bookmaker.from_dict(bet_dict["bookmaker"]),
-            bet_dict["lay"],
-            bet_dict["volume"],
-            bet_dict["previous_wager"]
+            __bet_dict["bet_type"],
+            __bet_dict["value"],
+            __bet_dict["odds"],
+            __bet_dict["bookmaker"],
+            __bet_dict["lay"],
+            __bet_dict["volume"],
+            __bet_dict["previous_wager"]
         )
