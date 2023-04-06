@@ -2,8 +2,7 @@ import typing
 import enum
 import re
 from .bookmaker import Bookmaker
-# from .bet_types import MatchWinner, HomeAway
-# from .type_hinting.bet_base import BetBase, BetType
+
 
 class BetType(enum.Enum):
     """Enum of currently accepted bet types"""
@@ -28,7 +27,7 @@ class BetType(enum.Enum):
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
-        "Value string must be `home` `draw` or `away`.\nExample: `home`"),
+        """Value string must be `home` `draw` or `away`.\nExample: `home`"""),
     BetType.AsianHandicap:          (re.compile(r"^(home|away) ([+-]?\d+(?:\.(?:0|25|5|75))?)$"),
         """Value string must be formatted as `TEAM NUMBER`:
             TEAM: Must be `home` or `away`.
@@ -57,7 +56,7 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str]] = {
             Number must be greater than or equal to 0.5.
         Examples: `home over 2.5`, `away under 3.5`, `home over 4`, `away under 0.5`"""),
     BetType.OddEven:                (re.compile(r"^(odd|even)$"),
-        "Value string must be either `odd` or `even`\nExample: `odd`"),
+        """Value string must be either `odd` or `even`\nExample: `odd`"""),
     BetType.Team_OddEven:           (re.compile(r"^(home|away) (odd|even)$"),
         """Value string must be formatted as `TEAM EVENES`:
             TEAM: Must be `home` or `away`.
@@ -148,3 +147,40 @@ class Bet:
     def __eq__(self, __value: 'Bet') -> bool:
         return self.bet_type == __value.bet_type and self.bookmaker == __value.bookmaker and \
             self.value == __value.value and self.odds == __value.odds and self.lay == __value.lay
+
+    def as_dict(self) -> dict:
+        """Returns the bet as a dictionary.
+
+        Returns:
+            dict: The bet as a dictionary.
+        """
+        return {
+            "bet_type": self.bet_type.value,
+            "value": self.value,
+            "odds": self.odds,
+            "bookmaker": self.bookmaker.as_dict(),
+            "lay": self.lay,
+            "volume": self.volume,
+            "previous_wager": self.previous_wager,
+            "wager": self.wager
+        }
+
+    @classmethod
+    def from_dict(cls, bet_dict: dict) -> 'Bet':
+        """Creates a bet from a dictionary.
+
+        Args:
+            bet_dict (dict): The dictionary to create the bet from.
+
+        Returns:
+            Bet: The bet created from the dictionary.
+        """
+        return cls(
+            bet_dict["bet_type"],
+            bet_dict["value"],
+            bet_dict["odds"],
+            Bookmaker.from_dict(bet_dict["bookmaker"]),
+            bet_dict["lay"],
+            bet_dict["volume"],
+            bet_dict["previous_wager"]
+        )
