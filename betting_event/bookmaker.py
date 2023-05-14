@@ -4,8 +4,8 @@ import itertools
 class Bookmaker:
     __ID_COUNTER = itertools.count()
 
-    def __init__(self, commision: float = 0.0, wager_limit: float = -1.0) -> None:
-        self.commision = commision
+    def __init__(self, commission: float = 0.0, wager_limit: float = -1.0) -> None:
+        self.commission = commission
         self.wager_limit = wager_limit
 
         self.__id = next(self.__ID_COUNTER)
@@ -16,7 +16,7 @@ class Bookmaker:
         Returns:
             dict: The bookmaker as a dictionary."""
         return {
-            "commision": self.commision,
+            "commission": self.commission,
             "wager_limit": self.wager_limit,
             "id": self.__id
         }
@@ -31,7 +31,7 @@ class Bookmaker:
             Returns:
                 Bookmaker: The bookmaker created from the dictionary.
         """
-        bookmaker = cls(__bookmaker_dict["commision"], __bookmaker_dict["wager_limit"])
+        bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"])
         bookmaker.__id = __bookmaker_dict["id"]
         return bookmaker
 

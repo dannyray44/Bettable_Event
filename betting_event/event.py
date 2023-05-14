@@ -1,6 +1,6 @@
 import typing
-from .bet import Bet
-from .bookmaker import Bookmaker
+from betting_event.bet import Bet
+from betting_event.bookmaker import Bookmaker
 
 class Event:
     def __init__(self, 
@@ -41,7 +41,7 @@ class Event:
         return self
 
     def add_bet_from_dict(self, bet_dict: dict) -> 'Event':
-        """Adds a bet dict to the event. If the bet already exists, it will be updated.
+        """Builds a bet from a dict and add it to this event. If the bet already exists, it will be updated.
 
         Args:
             bet_dict (dict): The bet to add.
@@ -49,11 +49,11 @@ class Event:
         Returns:
             Event: This event object.
         """
-        id = bet_dict.pop("bookmaker_id", 0)
+        id = bet_dict.pop("bookmaker_id", 0)    # Checks bet_dict for valid bookmaker_id
         if not "bookmaker" in bet_dict:
-            for bookmaker in self.bookmakers:
+            for bookmaker in self.bookmakers:   
                 if bookmaker.__id == id:
-                    bet_dict["bookmaker"] = bookmaker
+                    bet_dict["bookmaker"] = bookmaker   
                     break
             else:
                 raise ValueError("The bookmaker with the id {} does not exist in {}".format(id, [bookmaker.as_dict() for bookmaker in self.bookmakers]))
@@ -74,6 +74,8 @@ class Event:
             index = self.bets.index(bet)
             
         except ValueError:
+            if bet.bookmaker not in self.bookmakers:
+                self.add_bookmaker(bet.bookmaker)
             self.bets.append(bet)
 
         else:
@@ -84,14 +86,15 @@ class Event:
         return self
 
     def as_dict(self) -> dict:
-        """Returns the event as a dictionary.
+        """Returns the event as a dictionary, with values adjusted to match api formatting.
 
         Returns:
             dict: The event as a dictionary.
         """
+
         return {
             "wager_limit": self.wager_limit,
-            "bets": [bet.as_dict().pop("bookmaker") for bet in self.bets],
+            "bets": [{key: val for key, val in bet.as_dict().items() if key != "bookmaker"} for bet in self.bets],
             "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers]
         }
     

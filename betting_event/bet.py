@@ -1,7 +1,7 @@
 import typing
 import enum
 import re
-from .bookmaker import Bookmaker
+from betting_event.bookmaker import Bookmaker
 
 
 class BetType(enum.Enum):
@@ -160,7 +160,7 @@ class Bet:
             "value": self.value,
             "odds": self.odds,
             "bookmaker": self.bookmaker,
-            "bookmaker_id": self.bookmaker.__id,
+            "bookmaker_id": self.bookmaker._Bookmaker__id, # type: ignore
             "lay": self.lay,
             "volume": self.volume,
             "previous_wager": self.previous_wager,
@@ -177,12 +177,16 @@ class Bet:
         Returns:
             Bet: The bet created from the dictionary.
         """
-        return cls(
-            __bet_dict["bet_type"],
-            __bet_dict["value"],
-            __bet_dict["odds"],
-            __bet_dict["bookmaker"],
-            __bet_dict["lay"],
-            __bet_dict["volume"],
-            __bet_dict["previous_wager"]
-        )
+
+        # return cls(
+        #     bet_type=       __bet_dict["bet_type"],
+        #     value=          __bet_dict["value"],
+        #     odds=           __bet_dict["odds"],
+        #     bookmaker=      __bet_dict.get(["bookmaker"],       None),
+        #     lay=            __bet_dict.get(["lay"],             False),
+        #     volume=         __bet_dict.get(["volume"],         -1.0),
+        #     previous_wager= __bet_dict.get(["previous_wager"],  0.0)
+        #     )
+
+        keys = ["bet_type", "value", "odds", "bookmaker", "lay", "volume", "previous_wager"]
+        return cls(**{key: __bet_dict[key] for key in keys if key in __bet_dict})
