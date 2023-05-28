@@ -8,21 +8,21 @@ class BetType(enum.Enum):
     """Enum of currently accepted bet types"""
     MatchWinner = 1
     # HomeAway = 2
-    AsianHandicap = 4
-    Goals_OverUnder = 5       
-    BothTeamsToScore = 8      
-    ExactScore = 10
-    DoubleChance = 12
-    Team_Total = 16
-    OddEven = 21
-    Team_OddEven = 23
-    Result_BothTeamsScore = 24
-    Result_TotalGoals = 25
-    TeamCleanSheet = 27
-    Team_WinToNil = 29
-    ExactGoalsNumber = 38
-    Team_ExactGoalsNumber = 40
-    Team_ScoreAGoal = 43
+    AsianHandicap = 2
+    Goals_OverUnder = 3  
+    BothTeamsToScore = 4
+    ExactScore = 5
+    DoubleChance = 6
+    Team_Total = 7
+    OddEven = 8
+    Team_OddEven = 9
+    Result_BothTeamsScore = 10
+    Result_TotalGoals = 11
+    TeamCleanSheet = 12
+    Team_WinToNil = 13
+    ExactGoalsNumber = 14
+    Team_ExactGoalsNumber = 15
+    Team_ScoreAGoal = 16
 
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
@@ -54,7 +54,7 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
     BetType.DoubleChance:           (re.compile(r"^(home|draw|away)\/(home|draw|away)$"),
         """Value string must be formatted as `RESULT_A/RESULT_B`
             RESULT_A and RESULT_B: Must be `home`, `draw` or `away`. And RESULT_A != RESULT_B""",
-        ['home/draw', 'draw/away', 'home/away']),
+        ['home/draw', 'home/away', 'draw/home', 'draw/away', 'away/home', 'away/draw']),
 
     BetType.Team_Total:             (re.compile(r"^(home|away) (over |under )?([0-9]*)(.5)?$"),
         """Value string must be formatted as `TEAM POSITION NUMBER`:
