@@ -1,6 +1,6 @@
 Bettable event handler for WinWise betting calculator.
 ======================================================
-A simple class structure designed to help construct bettable events for the WinWise betting calculator.
+A python module used to handle and structure bettable events for WinWises multi-market calculator.
 
 # Installation
 ## Using git
