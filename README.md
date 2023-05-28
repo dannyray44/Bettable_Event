@@ -1,48 +1,23 @@
-Bettable event handler data for the WinWise betting calculator.
-===============================================================
-
+Bettable event handler for WinWise betting calculator.
+======================================================
 A simple class structure designed to help construct bettable events for the WinWise betting calculator.
 
-# Structure
-Abstract:
------------------
-- Each Event contains a list of Bookmakers and a list of Bets.
-- Each Bet contains a attribute `bookmaker` which is a reference to the bookmaker that the bet is placed with.
-
-```json
-"event": {
-    "wager_limit": "float: Maximum total wager for the event",
-
-    "bookmakers": [
-        {
-            "commission": "float: Commission rate for this bookmaker. e.g. 5% = 0.05",
-            "wager_limit": "float: Maximum wager at this bookmaker"
-        },
-        {...},
-        ...
-    ],
-
-    "bets": [
-        {
-            "bet_type": "Enum (BetType): The general type of bet. e.g. 'over_under'",
-            "value": "string: Describes specifics of the bet. e.g. 'over 2.5'",
-            "odds": "float: The odds of the bet. e.g. 1.5",
-            "bookmaker": "Bookmaker: Act as a link to a bookmaker in the event.",
-            "lay": "bool: Is this a lay bet. e.g. False",   //
-            "volume": "float: The volume available for this bet. aka maximum wager."
-        },
-        {...},
-        ...
-    ]
-}
-
+# Installation
+## Using git
+```bash
+git clone https://github.com/dannyray44/betting_event.git
+cd betting_event
+python setup.py install
+```
+## Using pip
+```bash
+python3 -m pip install git+https://github.com/dannyray44/betting_event
 ```
 
-
-Examples:
----------
+# Data Structure
+## Example:
+------------
 Constructing a simple event with two bookmakers and two bets.
-
 ```python
 import betting_event
 
@@ -61,7 +36,7 @@ for bet in over_under_bets:
 
 ```
 
-printing the event as a dictionary, this dictionary matches the formatting expected by WinWise API.
+Printing the event as a dictionary, this dictionary matches the formatting expected by WinWise API.
 ```python
 # print(new_event.as_dict())
 import json                                     # not required. Just for pretty printing
@@ -105,6 +80,39 @@ print(json.dumps(new_event.as_dict(), indent=4))
             "wager_limit": -1.0,
             "id": 2
         }
+    ]
+}
+```
+
+## Structure Overview:
+------------
+- Each Event contains a list of Bookmakers and a list of Bets.
+- Each Bet contains a attribute `bookmaker` which is a reference to the bookmaker that the bet is placed with.
+
+```json
+"event": {
+    "wager_limit": "float: Maximum total wager for the event",
+
+    "bookmakers": [
+        {
+            "commission": "float: Commission rate for this bookmaker. e.g. 5% = 0.05",
+            "wager_limit": "float: Maximum wager at this bookmaker"
+        },
+        {...},
+        ...
+    ],
+
+    "bets": [
+        {
+            "bet_type": "Enum (BetType): The general type of bet. e.g. 'over_under'",
+            "value": "string: Describes specifics of the bet. e.g. 'over 2.5'",
+            "odds": "float: The odds of the bet. e.g. 1.5",
+            "bookmaker": "Bookmaker: Act as a link to a bookmaker in the event.",
+            "lay": "bool: Is this a lay bet. e.g. False",   //
+            "volume": "float: The volume available for this bet. aka maximum wager."
+        },
+        {...},
+        ...
     ]
 }
 ```

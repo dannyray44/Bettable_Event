@@ -8,9 +8,9 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='betable events',
+    name='betting event',
     version='0.1.0',
-    description='Simple structure for handling events that can be bet on',
+    description='Simple structure for handling events that you can be bet on',
     long_description=readme,
     author='Daniel Harris',
     author_email='dannyray44@hotmail.co.uk',

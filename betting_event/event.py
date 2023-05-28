@@ -17,7 +17,7 @@ class Event:
         self.bets: typing.List[Bet] = bets
         self.bookmakers: typing.List[Bookmaker] = bookmakers
         self.profit: float
-    
+
     def add_bookmaker(self, bookmaker: Bookmaker) -> 'Event':
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
 
@@ -97,7 +97,7 @@ class Event:
             "bets": [{key: val for key, val in bet.as_dict().items() if key != "bookmaker"} for bet in self.bets],
             "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers]
         }
-    
+
     @classmethod
     def from_dict(cls, __event_dict: dict) -> 'Event':
         """Creates an event from a dictionary.
