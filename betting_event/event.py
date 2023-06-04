@@ -84,7 +84,7 @@ class Event:
 
         return {
             "wager_limit": self.wager_limit,
-            "bets": [{key: val for key, val in bet.as_dict().items() if key != "bookmaker"} for bet in self.bets],
+            "bets": [{key: val for key, val in bet.as_dict().items()} for bet in self.bets],
             "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers]
         }
 
