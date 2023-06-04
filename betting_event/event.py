@@ -105,6 +105,6 @@ class Event:
         )
 
         for bet_dict in __event_dict["bets"]:
-            current_inst.add_bet(bet_dict)
+            current_inst.add_bet(Bet.from_dict(bet_dict))
 
         return current_inst
