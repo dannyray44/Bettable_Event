@@ -8,7 +8,7 @@ class Bookmaker:
         self.commission = commission
         self.wager_limit = wager_limit
 
-        self.__id = next(self.__ID_COUNTER)
+        self._id = next(self.__ID_COUNTER)
 
     def as_dict(self) -> dict:
         """Returns the bookmaker as a dictionary.
@@ -18,7 +18,7 @@ class Bookmaker:
         return {
             "commission": self.commission,
             "wager_limit": self.wager_limit,
-            "id": self.__id
+            "id": self._id
         }
 
     @classmethod
@@ -32,8 +32,8 @@ class Bookmaker:
                 Bookmaker: The bookmaker created from the dictionary.
         """
         bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"])
-        bookmaker.__id = __bookmaker_dict["id"]
+        bookmaker._id = __bookmaker_dict["id"]
         return bookmaker
 
     def __eq__(self, __value: 'Bookmaker') -> bool:
-        return self.__id == __value.__id
+        return self._id == __value._id

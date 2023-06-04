@@ -55,7 +55,7 @@ class Event:
         id = bet_dict.pop("bookmaker_id", 0)    # Checks bet_dict for valid bookmaker_id
         if not "bookmaker" in bet_dict:
             for bookmaker in self.bookmakers:   
-                if bookmaker.__id == id:
+                if bookmaker._id == id:
                     bet_dict["bookmaker"] = bookmaker   
                     break
             else:
@@ -118,6 +118,11 @@ class Event:
         )
 
         for bet in __event_dict["bets"]:
+            if 'bookmaker_id' in bet:
+                for bookmaker in current_inst.bookmakers:
+                    if bookmaker._id == bet['bookmaker_id']:
+                        bet['bookmaker'] = bookmaker
+                        break
             current_inst.add_bet(Bet.from_dict(bet))
 
         return current_inst
