@@ -179,7 +179,7 @@ class Bet:
             "value": self.value,
             "odds": self.odds,
             "bookmaker": self.bookmaker,
-            "bookmaker_id": self.bookmaker._Bookmaker__id, # type: ignore
+            "bookmaker_id": self.bookmaker._id, # type: ignore
             "lay": self.lay,
             "volume": self.volume,
             "previous_wager": self.previous_wager,
