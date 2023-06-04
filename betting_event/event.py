@@ -43,26 +43,6 @@ class Event:
 
         return self
 
-    def add_bet_from_dict(self, bet_dict: dict) -> 'Event':
-        """Builds a bet from a dict and add it to this event. If the bet already exists, it will be updated.
-
-        Args:
-            bet_dict (dict): The bet to add.
-        
-        Returns:
-            Event: This event object.
-        """
-        id = bet_dict.pop("bookmaker_id", 0)    # Checks bet_dict for valid bookmaker_id
-        if not "bookmaker" in bet_dict:
-            for bookmaker in self.bookmakers:   
-                if bookmaker._id == id:
-                    bet_dict["bookmaker"] = bookmaker   
-                    break
-            else:
-                raise ValueError("The bookmaker with the id {} does not exist in {}".format(id, [bookmaker.as_dict() for bookmaker in self.bookmakers]))
-
-        return self.add_bet(self._BET_CLASS.from_dict(bet_dict))
-
     def add_bet(self, bet: Bet) -> 'Event':
         """Adds a bet to the event. If the bet already exists, it will be updated.
 
@@ -72,6 +52,13 @@ class Event:
         Returns:
             Event: This event object.
         """
+        if isinstance(bet.bookmaker, int):
+            for bookmaker in self.bookmakers:
+                if bookmaker._id == bet.bookmaker:
+                    bet.bookmaker = bookmaker
+                    break
+            else:
+                bet.bookmaker = bet.DefaultBookmaker
 
         try:
             index = self.bets.index(bet)
@@ -117,12 +104,7 @@ class Event:
             bookmakers= [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
         )
 
-        for bet in __event_dict["bets"]:
-            if 'bookmaker_id' in bet:
-                for bookmaker in current_inst.bookmakers:
-                    if bookmaker._id == bet['bookmaker_id']:
-                        bet['bookmaker'] = bookmaker
-                        break
-            current_inst.add_bet(Bet.from_dict(bet))
+        for bet_dict in __event_dict["bets"]:
+            current_inst.add_bet(bet_dict)
 
         return current_inst
