@@ -3,8 +3,8 @@ from betting_event.bet import Bet
 from betting_event.bookmaker import Bookmaker
 
 class Event:
-    __BOOKMAKER_CLASS: typing.Type[Bookmaker] = Bookmaker
-    __BET_CLASS: typing.Type[Bet] = Bet
+    _BOOKMAKER_CLASS: typing.Type[Bookmaker] = Bookmaker
+    _BET_CLASS: typing.Type[Bet] = Bet
 
     def __init__(self, 
                  wager_limit: float = -1.0,
