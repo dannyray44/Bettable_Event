@@ -9,7 +9,7 @@ with open('LICENSE') as f:
 
 setup(
     name='betting event',
-    version='0.1.3',
+    version='0.1.4',
     description='Simple structure for handling events that you can be bet on',
     long_description=readme,
     author='Daniel Harris',
