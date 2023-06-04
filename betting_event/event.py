@@ -61,7 +61,7 @@ class Event:
             else:
                 raise ValueError("The bookmaker with the id {} does not exist in {}".format(id, [bookmaker.as_dict() for bookmaker in self.bookmakers]))
 
-        return self.add_bet(self.__BET_CLASS.from_dict(bet_dict))
+        return self.add_bet(self._BET_CLASS.from_dict(bet_dict))
 
     def add_bet(self, bet: Bet) -> 'Event':
         """Adds a bet to the event. If the bet already exists, it will be updated.
@@ -114,7 +114,7 @@ class Event:
 
         current_inst= cls(
             wager_limit= __event_dict["wager_limit"],
-            bookmakers= [cls.__BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
+            bookmakers= [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
         )
 
         for bet in __event_dict["bets"]:
