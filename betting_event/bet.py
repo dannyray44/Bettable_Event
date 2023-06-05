@@ -126,7 +126,7 @@ class Bet:
                  bet_type: typing.Union[BetType, int],
                  value: str,
                  odds: float,
-                 bookmaker: typing.Optional[typing.Union[Bookmaker, int]] = None,
+                 bookmaker: typing.Optional[Bookmaker] = None,
                  lay: bool = False,
                  volume: float = -1.0,
                  previous_wager: float = 0.0

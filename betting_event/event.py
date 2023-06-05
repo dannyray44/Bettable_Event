@@ -17,8 +17,8 @@ class Event:
         if bookmakers is None:
             bookmakers = []
 
-        self.bets: typing.List[Bet] = bets
-        self.bookmakers: typing.List[Bookmaker] = bookmakers
+        self.bets: typing.List[self._BET_CLASS] = bets
+        self.bookmakers: typing.List[self._BOOKMAKER_CLASS] = bookmakers
         self.profit: float
 
     def add_bookmaker(self, bookmaker: Bookmaker) -> 'Event':
@@ -105,6 +105,13 @@ class Event:
         )
 
         for bet_dict in __event_dict["bets"]:
-            current_inst.add_bet(Bet.from_dict(bet_dict))
+            if isinstance(bet_dict["bookmaker"], int):
+                for bookmaker in current_inst.bookmakers:
+                    if bookmaker._id == bet_dict["bookmaker"]:
+                        bet_dict["bookmaker"] = bookmaker
+                        break
+                else:
+                    bet_dict["bookmaker"] = cls._BET_CLASS.DefaultBookmaker
+            current_inst.add_bet(cls._BET_CLASS.from_dict(bet_dict))
 
         return current_inst
