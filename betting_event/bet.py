@@ -1,7 +1,7 @@
 import typing
 import enum
 import re
-from betting_event.bookmaker import Bookmaker
+from .bookmaker import Bookmaker
 
 
 class BetType(enum.Enum):

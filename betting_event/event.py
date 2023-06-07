@@ -1,6 +1,6 @@
 import typing
-from betting_event.bet import Bet
-from betting_event.bookmaker import Bookmaker
+from .bet import Bet
+from .bookmaker import Bookmaker
 
 class Event:
     _BOOKMAKER_CLASS: typing.Type[Bookmaker] = Bookmaker
