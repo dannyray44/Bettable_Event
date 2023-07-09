@@ -1,38 +1,44 @@
 import typing
-from .bet import Bet
-from .bookmaker import Bookmaker
+
+from .bet import BET_T, Bet
+from .bookmaker import BOOKMAKER_T, Bookmaker
+
+EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
 
 class Event:
-    _BOOKMAKER_CLASS: typing.Type[Bookmaker] = Bookmaker
-    _BET_CLASS: typing.Type[Bet] = Bet
+    _BOOKMAKER_CLASS = Bookmaker
+    _BET_CLASS = Bet
 
     def __init__(self, 
                  wager_limit: float = -1.0,
-                 bets: typing.Optional[typing.List[Bet]] = None,
-                 bookmakers: typing.Optional[typing.List[Bookmaker]] = None) -> None:
+                 bets: typing.Optional[typing.List[BET_T]] = None,
+                 bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
+                 wager_precision: float = 0.01) -> None:
         self.wager_limit: float = wager_limit
+        self.wager_precision: float = wager_precision
 
         if bets is None:
             bets = []
         if bookmakers is None:
             bookmakers = []
 
-        self.bets: typing.List[self._BET_CLASS] = bets
-        self.bookmakers: typing.List[self._BOOKMAKER_CLASS] = bookmakers
+        self.bets: typing.List[BET_T] = bets
+        self.bookmakers = bookmakers
         self.profit: float
 
-    def add_bookmaker(self, bookmaker: Bookmaker) -> 'Event':
+    def add_bookmaker(self: EVENT_T, bookmaker: BOOKMAKER_T) -> EVENT_T:
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
 
         Args:
-            bookmaker (Bookmaker): The bookmaker to add.
+            bookmaker: The bookmaker to add.
         
         Returns:
             Event: This event object.
         """
+
         try:
             index = self.bookmakers.index(bookmaker)
-            
+
         except ValueError:
             self.bookmakers.append(bookmaker)
 
@@ -43,7 +49,7 @@ class Event:
 
         return self
 
-    def add_bet(self, bet: Bet) -> 'Event':
+    def add_bet(self: EVENT_T, bet: BET_T) -> EVENT_T:
         """Adds a bet to the event. If the bet already exists, it will be updated.
 
         Args:
@@ -52,6 +58,7 @@ class Event:
         Returns:
             Event: This event object.
         """
+
         if isinstance(bet.bookmaker, int):
             for bookmaker in self.bookmakers:
                 if bookmaker._id == bet.bookmaker:
@@ -62,12 +69,10 @@ class Event:
 
         try:
             index = self.bets.index(bet)
-            
         except ValueError:
             if bet.bookmaker not in self.bookmakers:
                 self.add_bookmaker(bet.bookmaker)
             self.bets.append(bet)
-
         else:
             for attribute in bet.__dict__:
                 if getattr(self.bets[index], attribute) != getattr(bet, attribute):
@@ -75,7 +80,7 @@ class Event:
 
         return self
 
-    def as_dict(self) -> dict:
+    def as_dict(self) -> typing.Dict[str, typing.Any]:
         """Returns the event as a dictionary, with values adjusted to match api formatting.
 
         Returns:
@@ -85,11 +90,12 @@ class Event:
         return {
             "wager_limit": self.wager_limit,
             "bets": [{key: val for key, val in bet.as_dict().items()} for bet in self.bets],
-            "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers]
+            "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers],
+            "wager_precision": self.wager_precision
         }
 
     @classmethod
-    def from_dict(cls, __event_dict: dict) -> 'Event':
+    def from_dict(cls: typing.Type[EVENT_T], __event_dict: dict) -> EVENT_T:
         """Creates an event from a dictionary.
         
         Args:
@@ -101,7 +107,8 @@ class Event:
 
         current_inst= cls(
             wager_limit= __event_dict["wager_limit"],
-            bookmakers= [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
+            bookmakers= [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]],
+            wager_precision= __event_dict["wager_precision"]
         )
 
         for bet_dict in __event_dict["bets"]:
@@ -112,6 +119,7 @@ class Event:
                         break
                 else:
                     bet_dict["bookmaker"] = cls._BET_CLASS.DefaultBookmaker
+
             current_inst.add_bet(cls._BET_CLASS.from_dict(bet_dict))
 
         return current_inst

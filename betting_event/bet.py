@@ -1,8 +1,10 @@
-import typing
 import enum
 import re
+import typing
+
 from .bookmaker import Bookmaker
 
+BET_T = typing.TypeVar('BET_T', bound='Bet')
 
 class BetType(enum.Enum):
     """Enum of currently accepted bet types"""
@@ -23,7 +25,6 @@ class BetType(enum.Enum):
     ExactGoalsNumber = 14
     Team_ExactGoalsNumber = 15
     Team_ScoreAGoal = 16
-
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
@@ -163,7 +164,9 @@ class Bet:
                 f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " + 
                 f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}\"")
 
-    def __eq__(self, __new_bet: 'Bet') -> bool:
+    def __eq__(self, __new_bet: object) -> bool:
+        if not isinstance(__new_bet, Bet):
+            raise NotImplementedError
         return self.bet_type == __new_bet.bet_type and self.bookmaker == __new_bet.bookmaker and \
             self.value == __new_bet.value and self.odds == __new_bet.odds and self.lay == __new_bet.lay
 
@@ -186,7 +189,7 @@ class Bet:
         }
 
     @classmethod
-    def from_dict(cls, __bet_dict: dict) -> 'Bet':
+    def from_dict(cls: typing.Type[BET_T], __bet_dict: dict) -> BET_T:
         """Creates a bet from a dictionary.
 
         Args:

@@ -1,5 +1,7 @@
 import unittest
+
 import betting_event as b_event
+
 
 class TestEvent(unittest.TestCase):
     def test_build(self):
