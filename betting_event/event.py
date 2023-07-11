@@ -26,7 +26,7 @@ class Event:
         self.bookmakers = bookmakers
         self.profit: float
 
-    def add_bookmaker(self: EVENT_T, bookmaker: BOOKMAKER_T) -> EVENT_T:
+    def add_bookmaker(self: EVENT_T, bookmaker) -> EVENT_T:
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
 
         Args:
@@ -49,7 +49,7 @@ class Event:
 
         return self
 
-    def add_bet(self: EVENT_T, bet: BET_T) -> EVENT_T:
+    def add_bet(self: EVENT_T, bet) -> EVENT_T:
         """Adds a bet to the event. If the bet already exists, it will be updated.
 
         Args:
