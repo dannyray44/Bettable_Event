@@ -126,7 +126,8 @@ class Bet:
                  bookmaker: typing.Optional[Bookmaker] = None,
                  lay: bool = False,
                  volume: float = -1.0,
-                 previous_wager: float = 0.0
+                 previous_wager: float = 0.0, 
+                 wager: float = 0.0
                  ) -> None:
         """Bet class constructor
 
@@ -153,7 +154,7 @@ class Bet:
         self.lay: bool = lay
         self.volume: float = volume
         self.previous_wager: float = previous_wager
-        self.wager: float = -1.0
+        self.wager: float = wager
 
         if ValueCheck[self.bet_type][0].fullmatch(self.value) is None:
             raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
@@ -197,3 +198,8 @@ class Bet:
 
         keys = ["bet_type", "value", "odds", "bookmaker", "lay", "volume", "previous_wager", "wager"]
         return cls(**{key: __bet_dict[key] for key in keys if key in __bet_dict})
+
+    def wager_placed(self):
+        "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
+        self.previous_wager += self.wager
+        self.wager = 0.0
