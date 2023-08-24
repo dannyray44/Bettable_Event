@@ -1,4 +1,4 @@
-# Betting Data API Configuration
+# WinWise Multi-Market arbitrage API Documentation
 
 This document provides an overview of the configuration options for using the WinWise arbitrage betting calculator API. This API will accept your betting data and determine the best wager values such that you will profit no matter the result (a.k.a. arbitrage betting).
 
