@@ -25,7 +25,7 @@ Example:
 
 ## Bookmakers
 
-The `bookmakers` parameter allows you to define an array of bookmakers with their specific settings. Each bookmaker object should have the following properties:
+The `bookmakers` parameter allows you to define an array of bookmakers with their specific settings. Each bookmaker object may have the following properties:
 
 | Required | Property                | Data Type  | Description                                                      | Default Value |
 |----------|-------------------------|------------|------------------------------------------------------------------|---------------|
