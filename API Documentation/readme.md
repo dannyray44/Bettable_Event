@@ -5,8 +5,8 @@ This document provides an overview of the configuration options for using the Wi
 Your input data should be structured similar to the following:
 ```json
 {
-    "wager_limit": 1000,
-    "wager_precision": 10,
+    "wager_limit": ...,
+    "wager_precision": ...,
     "bookmakers": [ ... ],
 	"bets": [ ... ]
 }
@@ -105,22 +105,60 @@ Example:
 # Table of Bet Types and Values:
 |`bet_type` ID|`bet_type` name         |`value` regex pattern                            |`value` examples                                                              |`bet_type` description                                                                                                                                                                                                                                                 |
 |-----------|----------------------|-----------------------------------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|1          |MatchWinner           |`^(home&#124;draw&#124;away)$`                           |'home', 'draw', 'away'                                                      |The result of the match                                                                                                                                                                                                                                              |
-|2          |AsianHandicap         |`^(home&#124;away) ([+-]?\d+(?:\.(?:0&#124;25&#124;5&#124;75))?)$`   |'home -0.75', 'away -3.0', 'home 4.25', 'away 1.75'                         |Pays if your team/bet wins with a handicap applied, also pays intermediate amount if the result is close for some handicap values. For an in depth demonstration of asian handicap payouts see https://bet-ibc.com/betting-tools/asian-handicap-and-overunder-calculator/|
-|3          |Goals_OverUnder       |`^(over&#124;under) ([+-]?\d+(?:\.(?:0&#124;25&#124;5&#124;75))?)$`  |'over 0.75', 'under 3.0', 'over 4.25', 'under 1.75'                         | ^^                                                                                                                                                                                                                                                                  |
-|4          |BothTeamsToScore      |`^(yes&#124;no)$`                                     |'yes', 'no'                                                                 |A bet on if both teams score                                                                                                                                                                                                                                         |
+|1          |MatchWinner           |`^(home|draw|away)$`                           |'home', 'draw', 'away'                                                      |The result of the match                                                                                                                                                                                                                                              |
+|2          |AsianHandicap         |`^(home|away) ([+-]?\d+(?:\.(?:0|25|5|75))?)$`   |'home -0.75', 'away -3.0', 'home 4.25', 'away 1.75'                         |Pays if your team/bet wins with a handicap applied, also pays intermediate amount if the result is close for some handicap values. For an in depth demonstration of asian handicap payouts see https://bet-ibc.com/betting-tools/asian-handicap-and-overunder-calculator/|
+|3          |Goals_OverUnder       |`^(over|under) ([+-]?\d+(?:\.(?:0|25|5|75))?)$`  |'over 0.75', 'under 3.0', 'over 4.25', 'under 1.75'                         | ^^                                                                                                                                                                                                                                                                  |
+|4          |BothTeamsToScore      |`^(yes|no)$`                                     |'yes', 'no'                                                                 |A bet on if both teams score                                                                                                                                                                                                                                         |
 |5          |ExactScore            |`^([0-9]{1,4}):([0-9]{1,4})$`                    |'2:1'                                                                       |A bet on the final score of the game formatted as Home_Team_Score:Away_Team_Score                                                                                                                                                                                    |
-|6          |DoubleChance          |`^(home&#124;draw&#124;away)\/(home&#124;draw&#124;away)$`           |'home/draw', 'home/away', 'draw/home', 'draw/away', 'away/home', 'away/draw'|A bet that pays out if either result occurs                                                                                                                                                                                                                          |
-|7          |Team_OverUnder        |`^(home&#124;away) (over&#124;under) ([0-9]{1,4}).5$`      |'home over 2.5', 'away under 0.5'                                           |A bet that the final score for a team will be over or under a number. The number must have a decimal of .5.                                                                                                                                                          |
-|8          |OddEven               |`^(odd&#124;even)$`                                   |'odd', 'even'                                                               |A bet on if the sum of both teams scores will be even or odd.                                                                                                                                                                                                        |
-|9          |Team_OddEven          |`^(home&#124;away) (odd&#124;even)$`                       |’home odd', 'home even', 'away odd', 'away even'                            |A bet on if a specified teams final score is odd or even.                                                                                                                                                                                                            |
-|10         |Result_BothTeamsScore |`^(home&#124;draw&#124;away)\/(yes&#124;no)$`                   |'home/yes', 'draw/yes', 'away/yes', 'home/no', 'draw/no', 'away/no'         |A bet on the result of the game combined with a bet on if both teams will have scored points. Only pays if both bets would pay.                                                                                                                                      |
-|11         |Result_TotalGoals     |`^(home&#124;draw&#124;away)\/(over&#124;under) ([0-9]{1,4}).5$`|'home/over 2.5', 'draw/under 3.5', 'away/over 4.5', 'draw/under 0.5'        |A bet on the result of the game and a bet on the total number of goals scored. Only pays if both bets would pay.                                                                                                                                                     |
-|12         |TeamCleanSheet        |`^(home&#124;away) (yes&#124;no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will not allow it’s opposition to score a point.                                                                                                                                                                                       |
-|13         |Team_WinToNil         |`^(home&#124;away) (yes&#124;no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will not allow it’s opposition to score a point and that your selected team will score a point thus winning.                                                                                                                           |
+|6          |DoubleChance          |`^(home|draw|away)\/(home|draw|away)$`           |'home/draw', 'home/away', 'draw/home', 'draw/away', 'away/home', 'away/draw'|A bet that pays out if either result occurs                                                                                                                                                                                                                          |
+|7          |Team_OverUnder        |`^(home|away) (over|under) ([0-9]{1,4}).5$`      |'home over 2.5', 'away under 0.5'                                           |A bet that the final score for a team will be over or under a number. The number must have a decimal of .5.                                                                                                                                                          |
+|8          |OddEven               |`^(odd|even)$`                                   |'odd', 'even'                                                               |A bet on if the sum of both teams scores will be even or odd.                                                                                                                                                                                                        |
+|9          |Team_OddEven          |`^(home|away) (odd|even)$`                       |’home odd', 'home even', 'away odd', 'away even'                            |A bet on if a specified teams final score is odd or even.                                                                                                                                                                                                            |
+|10         |Result_BothTeamsScore |`^(home|draw|away)\/(yes|no)$`                   |'home/yes', 'draw/yes', 'away/yes', 'home/no', 'draw/no', 'away/no'         |A bet on the result of the game combined with a bet on if both teams will have scored points. Only pays if both bets would pay.                                                                                                                                      |
+|11         |Result_TotalGoals     |`^(home|draw|away)\/(over|under) ([0-9]{1,4}).5$`|'home/over 2.5', 'draw/under 3.5', 'away/over 4.5', 'draw/under 0.5'        |A bet on the result of the game and a bet on the total number of goals scored. Only pays if both bets would pay.                                                                                                                                                     |
+|12         |TeamCleanSheet        |`^(home|away) (yes|no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will not allow it’s opposition to score a point.                                                                                                                                                                                       |
+|13         |Team_WinToNil         |`^(home|away) (yes|no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will not allow it’s opposition to score a point and that your selected team will score a point thus winning.                                                                                                                           |
 |14         |ExactGoalsNumber      |`^([0-9]{1,4})$`                                 |'2', '3', '4', ‘400’                                                        |A bet on the total number of points scored at the end of the game.                                                                                                                                                                                                   |
-|15         |Team_ExactGoalsNumber |`^(home&#124;away) ([0-9]{1,4})$`                     |'home 2', 'away 3'                                                          |A bet on the points scored by your selected team.                                                                                                                                                                                                                    |
-|16         |Team_ScoreAGoal       |`^(home&#124;away) (yes&#124;no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will or will not score a goal.                                                                                                                                                                                                         |
+|15         |Team_ExactGoalsNumber |`^(home|away) ([0-9]{1,4})$`                     |'home 2', 'away 3'                                                          |A bet on the points scored by your selected team.                                                                                                                                                                                                                    |
+|16         |Team_ScoreAGoal       |`^(home|away) (yes|no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will or will not score a goal.                                                                                                                                                                                                         |
 
 # Return Format:
-The API will return a JSON object with the same structure as the input. Each element in the `bets` array will have had the `wager` element updated to a number reflecting what you should wager on that bet. The `wager` value will remain as 0.0 if you should not place that wager.
+The API will return a JSON object with the same structure as the input. Each element in the `bets` array will have had the `wager` element updated to a number reflecting what you should wager on that bet. The `wager` value will remain as 0.0 if you should not place that wager. Also a profit value will be added to the object, this is your minimum guaranteed profit for these bets.
+
+Example:
+```json
+{
+    "wager_limit": 1000,
+    "wager_precision": 10,
+    "bookmakers": [
+        {
+            "id": 1,
+            "commission": 0.05,
+            "wager_limit": 500,
+            "ignore_wager_precision": true
+        },
+        {
+            "id": 2,
+            "max_wager_count": 2
+        }
+    ],
+    "bets": [
+        {
+            "bet_type": 1,
+            "value": "home",
+            "odds": 2.0,
+            "bookmaker": 1,
+            "wager": 250.0
+        },
+        {
+            "bet_type": 1,
+            "value": "home -0.75",
+            "odds": 1.8,
+            "bookmaker": 2,
+            "lay": true,
+            "wager": 250.0
+        }
+    ],
+    "profit": 50.0
+}
+```

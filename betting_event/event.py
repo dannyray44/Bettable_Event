@@ -11,11 +11,15 @@ class Event:
 
     def __init__(self, 
                  wager_limit: float = -1.0,
-                 bets: typing.Optional[typing.List[BET_T]] = None,
+                 wager_precision: float = 0.01,
+                 profit: float = 0.0,
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
-                 wager_precision: float = 0.01) -> None:
+                 bets: typing.Optional[typing.List[BET_T]] = None
+                 ) -> None:
+    
         self.wager_limit: float = wager_limit
         self.wager_precision: float = wager_precision
+        self.profit: float = profit
 
         if bets is None:
             bets = []
@@ -24,7 +28,6 @@ class Event:
 
         self.bets: typing.List[BET_T] = bets
         self.bookmakers = bookmakers
-        self.profit: float
 
     def add_bookmaker(self: EVENT_T, bookmaker) -> EVENT_T:
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
@@ -89,9 +92,10 @@ class Event:
 
         return {
             "wager_limit": self.wager_limit,
-            "bets": [{key: val for key, val in bet.as_dict().items()} for bet in self.bets],
+            "wager_precision": self.wager_precision,
+            "profit": self.profit,
             "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers],
-            "wager_precision": self.wager_precision
+            "bets": [{key: val for key, val in bet.as_dict().items()} for bet in self.bets]
         }
 
     @classmethod
