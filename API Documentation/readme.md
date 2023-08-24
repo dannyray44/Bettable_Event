@@ -123,7 +123,7 @@ Example:
 |16         |Team_ScoreAGoal       |`^(home|away) (yes|no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will or will not score a goal.                                                                                                                                                                                                         |
 
 # Return Format:
-The API will return a JSON object with the same structure as the input. Each element in the `bets` array will have had the `wager` element updated to a number reflecting what you should wager on that bet. The `wager` value will remain as 0.0 if you should not place that wager. Also a profit value will be added to the object, this is your minimum guaranteed profit for these bets.
+The API will return a JSON object with the same structure as the input. Each element in the `bets` array will have had the `wager` element updated to a number reflecting what you should wager on that bet. The `wager` value will remain as 0.0 if you should not place that wager. Also a `profit` value will be added to the object, that is your minimum guaranteed profit from this arbitrage.
 
 Example:
 ```json
