@@ -2,7 +2,7 @@ import enum
 import re
 import typing
 
-from .bookmaker import Bookmaker
+# from .bookmaker import Bookmaker
 
 BET_T = typing.TypeVar('BET_T', bound='Bet')
 
@@ -29,7 +29,7 @@ class BetType(enum.Enum):
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
         "Value string must be `home` `draw` or `away`.",
-        ["home", "draw", "away"]),
+        ['home', 'draw', 'away']),
 
     BetType.AsianHandicap:          (re.compile(r"^(home|away) ([+-]?\d+(?:\.(?:0|25|5|75))?)$"),
         """Value string must be formatted as `TEAM NUMBER`:
@@ -116,90 +116,93 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
         ['home yes', 'away no', 'home no', 'away yes']),
 }
 
-class Bet:
-    DefaultBookmaker = Bookmaker()
+# class Bet:
+#     DefaultBookmaker = Bookmaker()
 
-    def __init__(self,
-                 bet_type: typing.Union[BetType, int],
-                 value: str,
-                 odds: float,
-                 bookmaker: typing.Optional[Bookmaker] = None,
-                 lay: bool = False,
-                 volume: float = -1.0,
-                 previous_wager: float = 0.0, 
-                 wager: float = 0.0
-                 ) -> None:
-        """Bet class constructor
+#     def __init__(self,
+#                  bet_type: typing.Union[BetType, int],
+#                  value: str,
+#                  odds: float,
+#                  bookmaker: typing.Optional[Bookmaker] = None,
+#                  lay: bool = False,
+#                  volume: float = -1.0,
+#                  previous_wager: float = 0.0, 
+#                  wager: float = 0.0
+#                  ) -> None:
+#         """Bet class constructor
 
-        Args:
-            bet_type (BetType | int): Bet type or bet type int as defined in bet.BetType.
-            value (str): Bet value. The accepted inputs of this is dependent on the bet_type.
-            odds (float): The odds for the bet.
-            bookmaker (Bookmaker | None): The bookmaker for the bet. Defaults to Bookmaker(). If
-            not provided, the default bookmaker with no limits will be used.
-            volume (float): The volume for the bet (only applies to exchanges). Defaults
-            to -1.0, meaning no volume specified.
-            lay (bool): True if the bet is a lay bet, False if it is a back bet.
-            previous_wager (float): The sum of any previous wagers placed on this bet.
-            Defaults to 0.0. Useful for when a bet has been partially matched and you want to
-            recalculate.
-        """
-        if bookmaker is None:
-            bookmaker = self.DefaultBookmaker
-        self.bookmaker = bookmaker
+#         Args:
+#             bet_type (BetType | int): Bet type or bet type int as defined in bet.BetType.
+#             value (str): Bet value. The accepted inputs of this is dependent on the bet_type.
+#             odds (float): The odds for the bet.
+#             bookmaker (Bookmaker | None): The bookmaker for the bet. Defaults to Bookmaker(). If
+#             not provided, the default bookmaker with no limits will be used.
+#             volume (float): The volume for the bet (only applies to exchanges). Defaults
+#             to -1.0, meaning no volume specified.
+#             lay (bool): True if the bet is a lay bet, False if it is a back bet.
+#             previous_wager (float): The sum of any previous wagers placed on this bet.
+#             Defaults to 0.0. Useful for when a bet has been partially matched and you want to
+#             recalculate.
+#         """
+#         if bookmaker is None:
+#             bookmaker = self.DefaultBookmaker
+#         self.bookmaker = bookmaker
 
-        self.bet_type: BetType = BetType(bet_type)
-        self.value: str = value
-        self.odds: float = odds
-        self.lay: bool = lay
-        self.volume: float = volume
-        self.previous_wager: float = previous_wager
-        self.wager: float = wager
+#         self.bet_type: BetType = BetType(bet_type)
+#         self.value: str = value
+#         self.odds: float = odds
+#         self.lay: bool = lay
+#         self.volume: float = volume
+#         self.previous_wager: float = previous_wager
+#         self.wager: float = wager
 
-        if ValueCheck[self.bet_type][0].fullmatch(self.value) is None:
-            raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
-                f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " + 
-                f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}\"")
+#         if ValueCheck[self.bet_type][0].fullmatch(self.value) is None:
+#             raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
+#                 f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " + 
+#                 f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}\"")
 
-    def __eq__(self, __new_bet: object) -> bool:
-        if not isinstance(__new_bet, Bet):
-            raise NotImplementedError
-        return self.bet_type == __new_bet.bet_type and self.bookmaker == __new_bet.bookmaker and \
-            self.value == __new_bet.value and self.odds == __new_bet.odds and self.lay == __new_bet.lay
+#     def __eq__(self, __new_bet: object) -> bool:
+#         if not isinstance(__new_bet, Bet):
+#             raise NotImplementedError
+#         return self.bet_type == __new_bet.bet_type and self.bookmaker == __new_bet.bookmaker and \
+#             self.value == __new_bet.value and self.odds == __new_bet.odds and self.lay == __new_bet.lay
 
-    def as_dict(self) -> dict:
-        """Returns the bet as a dictionary.
+#     def as_dict(self) -> dict:
+#         """Returns the bet as a dictionary.
 
-        Returns:
-            dict: The bet as a dictionary.
-        """
+#         Returns:
+#             dict: The bet as a dictionary.
+#         """
 
-        return {
-            "bet_type": self.bet_type.value,
-            "value": self.value,
-            "odds": self.odds,
-            "bookmaker": self.bookmaker._id,
-            "lay": self.lay,
-            "volume": self.volume,
-            "previous_wager": self.previous_wager,
-            "wager": self.wager
-        }
+#         return {
+#             "bet_type": self.bet_type.value,
+#             "value": self.value,
+#             "odds": self.odds,
+#             "bookmaker": self.bookmaker._id,
+#             "lay": self.lay,
+#             "volume": self.volume,
+#             "previous_wager": self.previous_wager,
+#             "wager": self.wager
+#         }
 
-    @classmethod
-    def from_dict(cls: typing.Type[BET_T], __bet_dict: dict) -> BET_T:
-        """Creates a bet from a dictionary.
+#     @classmethod
+#     def from_dict(cls: typing.Type[BET_T], __bet_dict: dict) -> BET_T:
+#         """Creates a bet from a dictionary.
 
-        Args:
-            __bet_dict (dict): The dictionary to create the bet from.
+#         Args:
+#             __bet_dict (dict): The dictionary to create the bet from.
 
-        Returns:
-            Bet: The bet created from the dictionary.
-        """
+#         Returns:
+#             Bet: The bet created from the dictionary.
+#         """
 
-        keys = ["bet_type", "value", "odds", "bookmaker", "lay", "volume", "previous_wager", "wager"]
-        return cls(**{key: __bet_dict[key] for key in keys if key in __bet_dict})
+#         keys = ["bet_type", "value", "odds", "bookmaker", "lay", "volume", "previous_wager", "wager"]
+#         return cls(**{key: __bet_dict[key] for key in keys if key in __bet_dict})
 
-    def wager_placed(self):
-        "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
-        self.previous_wager += self.wager
-        self.wager = 0.0
+#     def wager_placed(self):
+#         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
+#         self.previous_wager += self.wager
+#         self.wager = 0.0
+
+for x in ValueCheck.values():
+    print(str(x[2]).strip('[]'))
