@@ -1,6 +1,18 @@
 # Betting Data API Configuration
 
-This document provides an overview of the configuration options for using the WinWise arbitrage betting calculator API. This API will accept your betting data and determine the best wager values such that you will profit no matter the result (a.k.a. arbitrage betting). You can customize the behaviour of the API using the following parameters:
+This document provides an overview of the configuration options for using the WinWise arbitrage betting calculator API. This API will accept your betting data and determine the best wager values such that you will profit no matter the result (a.k.a. arbitrage betting).
+
+Your input data should be structured similar to the following:
+```json
+{
+    "wager_limit": 1000,
+    "wager_precision": 10,
+    "bookmakers": [ ... ],
+	"bets": [ ... ]
+}
+```
+
+You can customize the behaviour of the API using the following parameters:
 
 ## Wager Limit (default: -1)
 
@@ -53,8 +65,8 @@ Example:
 ```
 
 ### Notes:
-It is generally advised to set `ignore_wager_precision` to true for bookmakers that are unlikely to ban you for suspicious betting activity. This will allow the calculator to optimise your wagers to be more profitable.
-If no bookmakers are defined, the Calculator will default to using a single bookmaker with an ID of 0 and no commission or wager limit.
+- It is generally advised to set `ignore_wager_precision` to true for bookmakers that are unlikely to ban you for suspicious betting activity. This will allow the calculator to optimise your wagers to be more profitable.
+- If no bookmakers are defined, the Calculator will default to using a single bookmaker with an ID of 0 and no commission or wager limit.
 
 ## *Bets
 
@@ -110,3 +122,5 @@ Example:
 |15         |Team_ExactGoalsNumber |`^(home&#124;away) ([0-9]{1,4})$`                     |'home 2', 'away 3'                                                          |A bet on the points scored by your selected team.                                                                                                                                                                                                                    |
 |16         |Team_ScoreAGoal       |`^(home&#124;away) (yes&#124;no)$`                         |’home yes', ‘away yes’, ‘home no’, 'away no'                                |A bet that your selected team will or will not score a goal.                                                                                                                                                                                                         |
 
+# Return Format:
+The API will return a JSON object with the same structure as the input. Each element in the `bets` array will have had the `wager` element updated to a number reflecting what you should wager on that bet. The `wager` value will remain as 0.0 if you should not place that wager.
