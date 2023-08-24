@@ -8,7 +8,7 @@ Your input data should be structured similar to the following:
     "wager_limit": ...,
     "wager_precision": ...,
     "bookmakers": [ ... ],
-	"bets": [ ... ]
+    "bets": [ ... ]
 }
 ```
 
