@@ -1,5 +1,5 @@
-import typing
 import json
+import typing
 
 from .bet import BET_T, Bet
 from .bookmaker import BOOKMAKER_T, Bookmaker
@@ -9,12 +9,12 @@ EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
 class Event:
     _BOOKMAKER_CLASS = Bookmaker
     _BET_CLASS = Bet
-    DEFAULTS = json.load(open("betting_event/defaults/event.json", "r"))
+    DEFAULTS = json.load(open("betting_event/defaults.json", "r"))["event"]
 
     def __init__(self,
-                 wager_limit: float = -1.0,
-                 wager_precision: float = 0.01,
-                 profit: float = 0.0,
+                 wager_limit: float = DEFAULTS['wager_limit'],
+                 wager_precision: float = DEFAULTS['wager_precision'],
+                 profit: float = DEFAULTS['profit'],
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None
                  ) -> None:
@@ -31,7 +31,7 @@ class Event:
         self.bets: typing.List[BET_T] = bets
         self.bookmakers: typing.List[BOOKMAKER_T] = bookmakers
 
-    def add_bookmaker(self: EVENT_T, bookmaker: BOOKMAKER_T) -> EVENT_T:
+    def add_bookmaker(self: EVENT_T, bookmaker) -> EVENT_T:
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
 
         Args:
@@ -58,7 +58,7 @@ class Event:
         """Adds a bet to the event. If the bet already exists, it will be updated.
 
         Args:
-            bet (Bet): The bet to add.
+            bet (Bet): The bet to add/update.
         
         Returns:
             Event: This event object.
@@ -124,7 +124,7 @@ class Event:
 
         if "bets" in __event_dict:
             for bet_dict in __event_dict["bets"]:
-                if isinstance(bet_dict["bookmaker"], int):
+                if "bookmaker" in bet_dict and isinstance(bet_dict["bookmaker"], int):
                     for bookmaker in current_inst.bookmakers:
                         if bookmaker._id == bet_dict["bookmaker"]:
                             bet_dict["bookmaker"] = bookmaker

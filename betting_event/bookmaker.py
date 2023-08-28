@@ -1,13 +1,12 @@
 import itertools
-import typing
 import json
+import typing
 
 BOOKMAKER_T = typing.TypeVar('BOOKMAKER_T', bound='Bookmaker')
 
 class Bookmaker:
-    """"""
     __ID_COUNTER = itertools.count()
-    DEFAULTS = json.load(open("betting_event/defaults/bookmaker.json", "r"))
+    DEFAULTS = json.load(open("betting_event/defaults.json", "r"))["bookmaker"]
 
     def __init__(self,
                  commission: float = DEFAULTS['commission'],
@@ -35,13 +34,13 @@ class Bookmaker:
         Returns:
             dict: The bookmaker as a dictionary.
         """
-        return {
-            "commission": self.commission,
-            "wager_limit": self.wager_limit,
-            "ignore_wager_precision": self.ignore_wager_precision,
-            "max_wager_count": self.max_wager_count,
-            "id": self._id
-        }
+        result = {}
+        for key in self.DEFAULTS.keys():
+            current_value = getattr(self, key)
+            if current_value != self.DEFAULTS[key]:
+                result[key] = getattr(self, key)
+
+        return {**result, **{"id": self._id}}
 
     @classmethod
     def from_dict(cls: typing.Type[BOOKMAKER_T], __bookmaker_dict: dict) -> BOOKMAKER_T:

@@ -1,7 +1,7 @@
 import enum
+import json
 import re
 import typing
-import json
 
 from .bookmaker import Bookmaker
 
@@ -118,7 +118,7 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
 
 class Bet:
     DefaultBookmaker = Bookmaker()
-    Defaults = json.load(open("betting_event/defaults/bet.json", "r"))
+    Defaults = json.load(open("betting_event/defaults.json", "r"))["bet"]
 
     def __init__(self,
                  bet_type: typing.Union[BetType, int],
@@ -205,8 +205,3 @@ class Bet:
         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
         self.previous_wager += self.wager
         self.wager = 0.0
-
-
-if __name__ == "__main__":
-    bet = Bet(BetType.MatchWinner, "home", 1.5, lay=True)
-    print(bet.as_dict())
