@@ -1,6 +1,6 @@
 import unittest
 
-import betting_event as b_event
+import betting_event.betting_event as b_event
 
 
 class TestEvent(unittest.TestCase):

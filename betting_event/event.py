@@ -1,4 +1,5 @@
 import typing
+import json
 
 from .bet import BET_T, Bet
 from .bookmaker import BOOKMAKER_T, Bookmaker
@@ -8,8 +9,9 @@ EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
 class Event:
     _BOOKMAKER_CLASS = Bookmaker
     _BET_CLASS = Bet
+    DEFAULTS = json.load(open("betting_event/defaults/event.json", "r"))
 
-    def __init__(self, 
+    def __init__(self,
                  wager_limit: float = -1.0,
                  wager_precision: float = 0.01,
                  profit: float = 0.0,
@@ -27,9 +29,9 @@ class Event:
             bookmakers = []
 
         self.bets: typing.List[BET_T] = bets
-        self.bookmakers = bookmakers
+        self.bookmakers: typing.List[BOOKMAKER_T] = bookmakers
 
-    def add_bookmaker(self: EVENT_T, bookmaker) -> EVENT_T:
+    def add_bookmaker(self: EVENT_T, bookmaker: BOOKMAKER_T) -> EVENT_T:
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
 
         Args:
@@ -89,41 +91,49 @@ class Event:
         Returns:
             dict: The event as a dictionary.
         """
+        result = {}
+        for default_key, default_value in self.DEFAULTS.items():
+            current_value = getattr(self, default_key)
+            if current_value != default_value:
+                result[default_key] = current_value
 
-        return {
-            "wager_limit": self.wager_limit,
-            "wager_precision": self.wager_precision,
-            "profit": self.profit,
-            "bookmakers": [bookmaker.as_dict() for bookmaker in self.bookmakers],
-            "bets": [{key: val for key, val in bet.as_dict().items()} for bet in self.bets]
-        }
+        result["bookmakers"] = [bookmaker.as_dict() for bookmaker in self.bookmakers]
+        result["bets"] = [{key: val for key, val in bet.as_dict().items()} for bet in self.bets]
+        return result
 
     @classmethod
     def from_dict(cls: typing.Type[EVENT_T], __event_dict: dict) -> EVENT_T:
         """Creates an event from a dictionary.
-        
+
         Args:
             __event_dict (dict): The dictionary to create the event from.
-            
+
         Returns:
             Event: The event created from the dictionary.
         """
 
-        current_inst= cls(
-            wager_limit= __event_dict["wager_limit"],
-            bookmakers= [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]],
-            wager_precision= __event_dict["wager_precision"]
-        )
+        clean_dict = {}
+        for key in ["wager_limit", "wager_precision", "profit"]:
+            if key in __event_dict and __event_dict[key] != cls.DEFAULTS[key]:
+                clean_dict[key] = __event_dict[key]
 
-        for bet_dict in __event_dict["bets"]:
-            if isinstance(bet_dict["bookmaker"], int):
-                for bookmaker in current_inst.bookmakers:
-                    if bookmaker._id == bet_dict["bookmaker"]:
-                        bet_dict["bookmaker"] = bookmaker
-                        break
-                else:
-                    bet_dict["bookmaker"] = cls._BET_CLASS.DefaultBookmaker
+        if "bookmakers" in __event_dict:
+            clean_dict["bookmakers"] = [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
 
-            current_inst.add_bet(cls._BET_CLASS.from_dict(bet_dict))
+        current_inst = cls(**clean_dict)
+
+        if "bets" in __event_dict:
+            for bet_dict in __event_dict["bets"]:
+                if isinstance(bet_dict["bookmaker"], int):
+                    for bookmaker in current_inst.bookmakers:
+                        if bookmaker._id == bet_dict["bookmaker"]:
+                            bet_dict["bookmaker"] = bookmaker
+                            break
+                    else:
+                        bet_dict["bookmaker"] = cls._BET_CLASS.DefaultBookmaker
+
+                current_inst.add_bet(cls._BET_CLASS.from_dict(bet_dict))
+        else:
+            raise ValueError("No bets in event dictionary.")
 
         return current_inst

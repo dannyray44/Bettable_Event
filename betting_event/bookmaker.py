@@ -1,13 +1,20 @@
 import itertools
 import typing
+import json
 
 BOOKMAKER_T = typing.TypeVar('BOOKMAKER_T', bound='Bookmaker')
 
 class Bookmaker:
     """"""
     __ID_COUNTER = itertools.count()
+    DEFAULTS = json.load(open("betting_event/defaults/bookmaker.json", "r"))
 
-    def __init__(self, commission: float = 0.0, wager_limit: float = -1.0, ignore_wager_precision: bool = False, max_wager_count: int = -1) -> None:
+    def __init__(self,
+                 commission: float = DEFAULTS['commission'],
+                 wager_limit: float = DEFAULTS['wager_limit'],
+                 ignore_wager_precision: bool = DEFAULTS['ignore_wager_precision'],
+                 max_wager_count: int = DEFAULTS['max_wager_count']
+                 ) -> None:
         """
         Args:
             commission (float): The commission the bookmaker takes (e.g. 5% = 0.05). Defaults to 0.0.
@@ -46,6 +53,7 @@ class Bookmaker:
             Returns:
                 Bookmaker: The bookmaker created from the dictionary.
         """
+        __bookmaker_dict = {**cls.DEFAULTS, **__bookmaker_dict} # Ensure default keys are present
         bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"], __bookmaker_dict["ignore_wager_precision"], __bookmaker_dict["max_wager_count"])
         bookmaker._id = __bookmaker_dict["id"]  # override the generated id
         return bookmaker

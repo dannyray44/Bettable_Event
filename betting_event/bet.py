@@ -1,6 +1,7 @@
 import enum
 import re
 import typing
+import json
 
 from .bookmaker import Bookmaker
 
@@ -9,7 +10,6 @@ BET_T = typing.TypeVar('BET_T', bound='Bet')
 class BetType(enum.Enum):
     """Enum of currently accepted bet types"""
     MatchWinner = 1
-    # HomeAway = 2
     AsianHandicap = 2
     Goals_OverUnder = 3  
     BothTeamsToScore = 4
@@ -118,16 +118,17 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
 
 class Bet:
     DefaultBookmaker = Bookmaker()
+    Defaults = json.load(open("betting_event/defaults/bet.json", "r"))
 
     def __init__(self,
                  bet_type: typing.Union[BetType, int],
                  value: str,
                  odds: float,
                  bookmaker: typing.Optional[Bookmaker] = None,
-                 lay: bool = False,
-                 volume: float = -1.0,
-                 previous_wager: float = 0.0, 
-                 wager: float = 0.0
+                 lay: bool = Defaults["lay"],
+                 volume: float = Defaults["volume"],
+                 previous_wager: float = Defaults["previous_wager"], 
+                 wager: float = Defaults["wager"]
                  ) -> None:
         """Bet class constructor
 
@@ -135,7 +136,7 @@ class Bet:
             bet_type (BetType | int): Bet type or bet type int as defined in bet.BetType.
             value (str): Bet value. The accepted inputs of this is dependent on the bet_type.
             odds (float): The odds for the bet.
-            bookmaker (Bookmaker | None): The bookmaker for the bet. Defaults to Bookmaker(). If
+            bookmaker (Bookmaker | None): The bookmaker for the bet. If
             not provided, the default bookmaker with no limits will be used.
             volume (float): The volume for the bet (only applies to exchanges). Defaults
             to -1.0, meaning no volume specified.
@@ -156,7 +157,7 @@ class Bet:
         self.previous_wager: float = previous_wager
         self.wager: float = wager
 
-        if ValueCheck[self.bet_type][0].fullmatch(self.value) is None:
+        if ValueCheck[self.bet_type][0].fullmatch(self.value.lower()) is None:
             raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
                 f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " + 
                 f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}\"")
@@ -171,18 +172,19 @@ class Bet:
         """Returns the bet as a dictionary.
 
         Returns:
-            dict: The bet as a dictionary.
+            dict: This bet represented as a dictionary.
         """
+        defaults_removed_dict = {}
+        for default_key, default_value in self.Defaults.items():
+            current_value = getattr(self, default_key)
+            if isinstance(current_value, Bookmaker):
+                current_value = current_value._id
+            if current_value != default_value:
+                defaults_removed_dict[default_key] = current_value
 
         return {
-            "bet_type": self.bet_type.value,
-            "value": self.value,
-            "odds": self.odds,
-            "bookmaker": self.bookmaker._id,
-            "lay": self.lay,
-            "volume": self.volume,
-            "previous_wager": self.previous_wager,
-            "wager": self.wager
+            **{"bet_type": self.bet_type.value, "value": self.value, "odds": self.odds},
+            **defaults_removed_dict
         }
 
     @classmethod
@@ -196,10 +198,15 @@ class Bet:
             Bet: The bet created from the dictionary.
         """
 
-        keys = ["bet_type", "value", "odds", "bookmaker", "lay", "volume", "previous_wager", "wager"]
-        return cls(**{key: __bet_dict[key] for key in keys if key in __bet_dict})
+        return cls(**{key: __bet_dict[key] for key in ["bet_type", "value", "odds"]},
+                   **{key: __bet_dict[key] for key in cls.Defaults if key in __bet_dict})
 
     def wager_placed(self):
         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
         self.previous_wager += self.wager
         self.wager = 0.0
+
+
+if __name__ == "__main__":
+    bet = Bet(BetType.MatchWinner, "home", 1.5, lay=True)
+    print(bet.as_dict())

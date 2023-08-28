@@ -14,7 +14,7 @@ Your input data should be structured similar to the following:
 
 You can customize the behaviour of the API using the following parameters:
 
-## Wager Limit (default: -1)
+## Wager Limit (default: -1, no wager limit)
 
 The `wager_limit` parameter specifies the maximum amount that can be wagered on the event in total. If no wager limits are defined here or in bookmakers, this value will default to 100, such that all wager values represent a percentage of the total stake.
 
