@@ -16,5 +16,6 @@ setup(
     author_email='dannyray44@hotmail.co.uk',
     url='https://github.com/dannyray44/betable_event',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
+    data_files=[('', ['defaults.json'])]
 )
