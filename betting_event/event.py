@@ -10,7 +10,7 @@ EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
 class Event:
     _BOOKMAKER_CLASS = Bookmaker
     _BET_CLASS = Bet
-    DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
+    DEFAULTS: dict = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
 
     def __init__(self,
                  wager_limit: float = DEFAULTS['wager_limit'],
@@ -88,7 +88,7 @@ class Event:
 
         return self
 
-    def as_dict(self) -> typing.Dict[str, typing.Any]:
+    def as_dict(self, wagers_only: bool = False) -> typing.Dict[str, typing.Any]:
         """Returns the event as a dictionary, with values adjusted to match api formatting.
 
         Returns:
@@ -96,12 +96,14 @@ class Event:
         """
         result = {}
         for default_key, default_value in self.DEFAULTS.items():
+            if default_key in ["bookmakers", "bets"]:
+                continue
             current_value = getattr(self, default_key)
             if current_value != default_value:
                 result[default_key] = current_value
 
         result["bookmakers"] = [bookmaker.as_dict() for bookmaker in self.bookmakers]
-        result["bets"] = [{key: val for key, val in bet.as_dict().items()} for bet in self.bets]
+        result["bets"] = [{key: val for key, val in bet.as_dict().items()} for bet in self.bets if not(wagers_only) or bet.wager != 0]
         return result
 
     @classmethod
@@ -116,7 +118,9 @@ class Event:
         """
 
         clean_dict = {}
-        for key in ["wager_limit", "wager_precision", "profit"]:
+        for key in cls.DEFAULTS.keys():
+            if key in ["bookmakers", "bets"]:
+                continue
             if key in __event_dict and __event_dict[key] != cls.DEFAULTS[key]:
                 clean_dict[key] = __event_dict[key]
 
