@@ -17,5 +17,5 @@ setup(
     url='https://github.com/dannyray44/betable_event',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    package_data=[('betting_event', ['defaults.json'])]
+    package_data={'betting_event': ['defaults.json']}
 )
