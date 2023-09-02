@@ -2,6 +2,7 @@ import enum
 import json
 import re
 import typing
+from os.path import dirname, join
 
 from .bookmaker import Bookmaker
 
@@ -118,7 +119,7 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
 
 class Bet:
     DefaultBookmaker = Bookmaker()
-    Defaults = json.load(open("betting_event/defaults.json", "r"))["bet"]
+    Defaults = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bet"]
 
     def __init__(self,
                  bet_type: typing.Union[BetType, int],

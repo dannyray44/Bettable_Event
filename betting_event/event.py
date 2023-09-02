@@ -1,5 +1,6 @@
 import json
 import typing
+from os.path import dirname, join
 
 from .bet import BET_T, Bet
 from .bookmaker import BOOKMAKER_T, Bookmaker
@@ -9,7 +10,7 @@ EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
 class Event:
     _BOOKMAKER_CLASS = Bookmaker
     _BET_CLASS = Bet
-    DEFAULTS = json.load(open("betting_event/defaults.json", "r"))["event"]
+    DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
 
     def __init__(self,
                  wager_limit: float = DEFAULTS['wager_limit'],

@@ -1,12 +1,13 @@
 import itertools
 import json
 import typing
+from os.path import dirname, join
 
 BOOKMAKER_T = typing.TypeVar('BOOKMAKER_T', bound='Bookmaker')
 
 class Bookmaker:
     __ID_COUNTER = itertools.count()
-    DEFAULTS = json.load(open("betting_event/defaults.json", "r"))["bookmaker"]
+    DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bookmaker"]
 
     def __init__(self,
                  commission: float = DEFAULTS['commission'],
