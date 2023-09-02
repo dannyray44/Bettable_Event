@@ -16,6 +16,7 @@ class Event:
                  wager_limit: float = DEFAULTS['wager_limit'],
                  wager_precision: float = DEFAULTS['wager_precision'],
                  profit: float = DEFAULTS['profit'],
+                 no_draw: bool = DEFAULTS['no_draw'],
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None
                  ) -> None:
@@ -23,6 +24,7 @@ class Event:
         self.wager_limit: float = wager_limit
         self.wager_precision: float = wager_precision
         self.profit: float = profit
+        self.no_draw: bool = no_draw
 
         if bets is None:
             bets = []
