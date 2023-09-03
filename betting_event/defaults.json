@@ -2,7 +2,7 @@
     "event": {
         "wager_limit": -1.0,
         "wager_precision": 0.01,
-        "profit": 0.0,
+        "profit": [0.0, 0.0],
         "no_draw": false,
         "bookmakers": [],
         "bets": []

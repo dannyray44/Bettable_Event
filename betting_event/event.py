@@ -15,7 +15,7 @@ class Event:
     def __init__(self,
                  wager_limit: float = DEFAULTS['wager_limit'],
                  wager_precision: float = DEFAULTS['wager_precision'],
-                 profit: float = DEFAULTS['profit'],
+                 profit: tuple[float, float] = DEFAULTS['profit'],
                  no_draw: bool = DEFAULTS['no_draw'],
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None
@@ -23,7 +23,7 @@ class Event:
     
         self.wager_limit: float = wager_limit
         self.wager_precision: float = wager_precision
-        self.profit: float = profit
+        self.profit: tuple[float, float] = tuple(profit)
         self.no_draw: bool = no_draw
 
         if bets is None:
@@ -121,8 +121,12 @@ class Event:
         for key in cls.DEFAULTS.keys():
             if key in ["bookmakers", "bets"]:
                 continue
-            if key in __event_dict and __event_dict[key] != cls.DEFAULTS[key]:
+            if key in __event_dict: # and __event_dict[key] != cls.DEFAULTS[key]:
                 clean_dict[key] = __event_dict[key]
+                if key == "profit" and isinstance(clean_dict[key], list):
+                    clean_dict[key] = tuple(clean_dict[key])
+
+        # clean_dict["profit"] = tuple(clean_dict["profit"])
 
         if "bookmakers" in __event_dict:
             clean_dict["bookmakers"] = [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
