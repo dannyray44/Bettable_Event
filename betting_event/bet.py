@@ -122,7 +122,7 @@ class Bet:
     Defaults = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bet"]
 
     def __init__(self,
-                 bet_type: typing.Union[BetType, int],
+                 bet_type: typing.Union[BetType, str, int],
                  value: str,
                  odds: float,
                  bookmaker: typing.Optional[Bookmaker] = None,
@@ -150,7 +150,7 @@ class Bet:
             bookmaker = self.DefaultBookmaker
         self.bookmaker = bookmaker
 
-        self.bet_type: BetType = BetType(bet_type)
+        self.bet_type: BetType = BetType[bet_type] if isinstance(bet_type, str) else BetType(bet_type)
         self.value: str = value
         self.odds: float = odds
         self.lay: bool = lay
@@ -184,7 +184,7 @@ class Bet:
                 defaults_removed_dict[default_key] = current_value
 
         return {
-            **{"bet_type": self.bet_type.value, "value": self.value, "odds": self.odds},
+            **{"bet_type": self.bet_type.name, "value": self.value, "odds": self.odds},
             **defaults_removed_dict
         }
 
