@@ -1,4 +1,3 @@
-import requests
 import json
 import typing
 from os.path import dirname, join
@@ -175,7 +174,7 @@ class Event:
         print(res.json())
 
         if res.status_code != 200:
-            print("Error sending event to RapidAPI: " + res.json())
+            print("Error sending event to RapidAPI: ", res.json())
             return self
 
         updated_event = Event.from_dict(json.loads(res.json()))
