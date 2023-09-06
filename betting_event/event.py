@@ -1,3 +1,4 @@
+import http.client
 import json
 import typing
 from os.path import dirname, join
@@ -11,6 +12,7 @@ class Event:
     _BOOKMAKER_CLASS = Bookmaker
     _BET_CLASS = Bet
     DEFAULTS: dict = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
+    DEFAULTS["profit"] = tuple(DEFAULTS["profit"])
 
     def __init__(self,
                  wager_limit: float = DEFAULTS['wager_limit'],
@@ -148,3 +150,38 @@ class Event:
             raise ValueError("No bets in event dictionary.")
 
         return current_inst
+
+    def send_to_RapidAPI(self, api_key: str) -> 'Event':
+        """Sends the event to the multi-market calculator at RapidAPI to calculate the optimal
+        wagers.
+
+        Args:
+            api_key (str): Your 'X-RapidAPI-Key' provided when you signed up.
+
+        Returns:
+            Event: The event with the wagers updated.
+        """
+        conn = http.client.HTTPSConnection("multi-market-calculator.p.rapidapi.com")
+        payload = json.dumps(self.as_dict())
+        headers = {
+            'content-type': "application/json",
+            'X-RapidAPI-Key': api_key,
+            'X-RapidAPI-Host': "multi-market-calculator.p.rapidapi.com"
+        }
+
+        conn.request("POST", "/MultiMarket", payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+
+        if res.status != 200:
+            print("Error sending event to RapidAPI: " + data.decode("utf-8"))
+            return self
+
+        updated_event = Event.from_dict(json.loads(data.decode("utf-8")))
+
+        for updated_bet in updated_event.bets:
+            self.add_bet(updated_bet)
+
+        self.profit = updated_event.profit
+
+        return self

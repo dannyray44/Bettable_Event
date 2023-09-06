@@ -48,7 +48,7 @@ class TestBet(unittest.TestCase):
     def test_as_dict_partial(self):
         bet = Bet(BetType.MatchWinner, "home", 2.5)
         self.assertEqual(bet.as_dict(), {
-            "bet_type": 1,
+            "bet_type": "MatchWinner",
             "value": "home",
             "odds": 2.5
         })
@@ -56,7 +56,7 @@ class TestBet(unittest.TestCase):
     def test_as_dict_full(self):
         bet = Bet(BetType.MatchWinner, "home", 2.5, lay=True, volume=10, wager=10)
         self.assertEqual(bet.as_dict(), {
-            "bet_type": 1,
+            "bet_type": "MatchWinner",
             "value": "home",
             "odds": 2.5,
             "lay": True,

@@ -1,5 +1,6 @@
 import math
 
+
 def american_to_decimal(american_odds: int) -> float:
     """Converts American odds to decimal odds."""
     if american_odds >= 100:
