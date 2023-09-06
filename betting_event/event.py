@@ -1,4 +1,4 @@
-import http.client
+import requests
 import json
 import typing
 from os.path import dirname, join
@@ -17,7 +17,7 @@ class Event:
     def __init__(self,
                  wager_limit: float = DEFAULTS['wager_limit'],
                  wager_precision: float = DEFAULTS['wager_precision'],
-                 profit: tuple[float, float] = DEFAULTS['profit'],
+                 profit: list[float] = DEFAULTS['profit'],
                  no_draw: bool = DEFAULTS['no_draw'],
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None
@@ -25,7 +25,7 @@ class Event:
     
         self.wager_limit: float = wager_limit
         self.wager_precision: float = wager_precision
-        self.profit: tuple[float, float] = tuple(profit)
+        self.profit: tuple[float, float] = tuple(profit) # type: ignore
         self.no_draw: bool = no_draw
 
         if bets is None:
@@ -161,7 +161,8 @@ class Event:
         Returns:
             Event: The event with the wagers updated.
         """
-        conn = http.client.HTTPSConnection("multi-market-calculator.p.rapidapi.com")
+        
+        url = "https://multi-market-calculator.p.rapidapi.com/MultiMarket"
         payload = json.dumps(self.as_dict())
         headers = {
             'content-type': "application/json",
@@ -169,15 +170,15 @@ class Event:
             'X-RapidAPI-Host': "multi-market-calculator.p.rapidapi.com"
         }
 
-        conn.request("POST", "/MultiMarket", payload, headers)
-        res = conn.getresponse()
-        data = res.read()
+        res = requests.post(url, json=payload, headers=headers)
 
-        if res.status != 200:
-            print("Error sending event to RapidAPI: " + data.decode("utf-8"))
+        print(res.json())
+
+        if res.status_code != 200:
+            print("Error sending event to RapidAPI: " + res.json())
             return self
 
-        updated_event = Event.from_dict(json.loads(data.decode("utf-8")))
+        updated_event = Event.from_dict(json.loads(res.json()))
 
         for updated_bet in updated_event.bets:
             self.add_bet(updated_bet)
