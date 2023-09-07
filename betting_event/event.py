@@ -1,3 +1,4 @@
+import http.client
 import json
 import typing
 from os.path import dirname, join
@@ -160,24 +161,28 @@ class Event:
         Returns:
             Event: The event with the wagers updated.
         """
-        
-        url = "https://multi-market-calculator.p.rapidapi.com/MultiMarket"
+
+        conn = http.client.HTTPSConnection("multi-market-calculator.p.rapidapi.com")
+
         payload = json.dumps(self.as_dict())
         headers = {
             'content-type': "application/json",
-            'X-RapidAPI-Key': api_key,
+            'X-RapidAPI-Key': json.load(open('api_keys.json', 'r'))['rapid_api'],
             'X-RapidAPI-Host': "multi-market-calculator.p.rapidapi.com"
         }
 
-        res = requests.post(url, json=payload, headers=headers)
+        conn.request("POST", "/MultiMarket", payload, headers)
 
-        print(res.json())
+        res = conn.getresponse()
+        data = res.read()
 
-        if res.status_code != 200:
-            print("Error sending event to RapidAPI: ", res.json())
+        # print(data.decode("utf-8"))
+
+        if res.status != 200:
+            print("Error sending event to RapidAPI: ", data)
             return self
 
-        updated_event = Event.from_dict(json.loads(res.json()))
+        updated_event = Event.from_dict(json.loads(data))
 
         for updated_bet in updated_event.bets:
             self.add_bet(updated_bet)
