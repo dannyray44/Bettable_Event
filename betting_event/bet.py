@@ -8,6 +8,8 @@ from .bookmaker import Bookmaker
 
 BET_T = typing.TypeVar('BET_T', bound='Bet')
 
+DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bet"]
+
 class BetType(enum.Enum):
     """Enum of currently accepted bet types"""
     MatchWinner = 1
@@ -119,17 +121,16 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
 
 class Bet:
     DefaultBookmaker = Bookmaker()
-    Defaults = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bet"]
 
     def __init__(self,
                  bet_type: typing.Union[BetType, str, int],
                  value: str,
                  odds: float,
                  bookmaker: typing.Optional[Bookmaker] = None,
-                 lay: bool = Defaults["lay"],
-                 volume: float = Defaults["volume"],
-                 previous_wager: float = Defaults["previous_wager"], 
-                 wager: float = Defaults["wager"]
+                 lay: bool = DEFAULTS["lay"],
+                 volume: float = DEFAULTS["volume"],
+                 previous_wager: float = DEFAULTS["previous_wager"], 
+                 wager: float = DEFAULTS["wager"]
                  ) -> None:
         """Bet class constructor
 
@@ -139,11 +140,11 @@ class Bet:
             odds (float): The odds for the bet.
             bookmaker (Bookmaker | None): The bookmaker for the bet. If
             not provided, the default bookmaker with no limits will be used.
-            volume (float): The volume for the bet (only applies to exchanges). Defaults
+            volume (float): The volume for the bet (only applies to exchanges). DEFAULTS
             to -1.0, meaning no volume specified.
             lay (bool): True if the bet is a lay bet, False if it is a back bet.
             previous_wager (float): The sum of any previous wagers placed on this bet.
-            Defaults to 0.0. Useful for when a bet has been partially matched and you want to
+            DEFAULTS to 0.0. Useful for when a bet has been partially matched and you want to
             recalculate.
         """
         if bookmaker is None:
@@ -176,7 +177,7 @@ class Bet:
             dict: This bet represented as a dictionary.
         """
         defaults_removed_dict = {}
-        for default_key, default_value in self.Defaults.items():
+        for default_key, default_value in DEFAULTS.items():
             current_value = getattr(self, default_key)
             if isinstance(current_value, Bookmaker):
                 current_value = current_value._id
@@ -200,7 +201,7 @@ class Bet:
         """
 
         return cls(**{key: __bet_dict[key] for key in ["bet_type", "value", "odds"]},
-                   **{key: __bet_dict[key] for key in cls.Defaults if key in __bet_dict})
+                   **{key: __bet_dict[key] for key in DEFAULTS if key in __bet_dict})
 
     def wager_placed(self):
         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."

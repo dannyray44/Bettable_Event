@@ -8,16 +8,18 @@ from .bookmaker import BOOKMAKER_T, Bookmaker
 
 EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
 
+DEFAULTS: dict = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
+DEFAULTS["profit"] = tuple(DEFAULTS["profit"])
+
 class Event:
     _BOOKMAKER_CLASS = Bookmaker
     _BET_CLASS = Bet
-    DEFAULTS: dict = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
-    DEFAULTS["profit"] = tuple(DEFAULTS["profit"])
+
 
     def __init__(self,
                  wager_limit: float = DEFAULTS['wager_limit'],
                  wager_precision: float = DEFAULTS['wager_precision'],
-                 profit: list[float] = DEFAULTS['profit'],
+                 profit: list[float] = DEFAULTS['profit'], # type: ignore
                  no_draw: bool = DEFAULTS['no_draw'],
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None
@@ -97,7 +99,7 @@ class Event:
             dict: The event as a dictionary.
         """
         result = {}
-        for default_key, default_value in self.DEFAULTS.items():
+        for default_key, default_value in DEFAULTS.items():
             if default_key in ["bookmakers", "bets"]:
                 continue
             current_value = getattr(self, default_key)
@@ -120,10 +122,10 @@ class Event:
         """
 
         clean_dict = {}
-        for key in cls.DEFAULTS.keys():
+        for key in DEFAULTS.keys():
             if key in ["bookmakers", "bets"]:
                 continue
-            if key in __event_dict: # and __event_dict[key] != cls.DEFAULTS[key]:
+            if key in __event_dict: # and __event_dict[key] != DEFAULTS[key]:
                 clean_dict[key] = __event_dict[key]
                 if key == "profit" and isinstance(clean_dict[key], list):
                     clean_dict[key] = tuple(clean_dict[key])

@@ -1,6 +1,6 @@
 import unittest
 
-from betting_event.bet import Bet, BetType, ValueCheck
+from betting_event.bet import Bet, BetType, ValueCheck, DEFAULTS
 
 
 class TestBet(unittest.TestCase):
@@ -10,9 +10,9 @@ class TestBet(unittest.TestCase):
         self.assertEqual(bet.value, "home")
         self.assertEqual(bet.odds, 2.5)
         self.assertEqual(bet.bookmaker, Bet.DefaultBookmaker)
-        self.assertEqual(bet.lay, Bet.Defaults['lay'])
-        self.assertEqual(bet.volume, Bet.Defaults['volume'])
-        self.assertEqual(bet.wager, Bet.Defaults['wager'])
+        self.assertEqual(bet.lay, DEFAULTS['lay'])
+        self.assertEqual(bet.volume, DEFAULTS['volume'])
+        self.assertEqual(bet.wager, DEFAULTS['wager'])
 
     def test_from_dict_full(self):
         bet = Bet.from_dict({
@@ -41,9 +41,9 @@ class TestBet(unittest.TestCase):
         self.assertEqual(bet.value, "home")
         self.assertEqual(bet.odds, 2.5)
         self.assertEqual(bet.bookmaker, Bet.DefaultBookmaker)
-        self.assertEqual(bet.lay, Bet.Defaults['lay'])
-        self.assertEqual(bet.volume, Bet.Defaults['volume'])
-        self.assertEqual(bet.wager, Bet.Defaults['wager'])
+        self.assertEqual(bet.lay, DEFAULTS['lay'])
+        self.assertEqual(bet.volume, DEFAULTS['volume'])
+        self.assertEqual(bet.wager, DEFAULTS['wager'])
 
     def test_as_dict_partial(self):
         bet = Bet(BetType.MatchWinner, "home", 2.5)

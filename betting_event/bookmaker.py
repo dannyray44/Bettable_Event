@@ -5,9 +5,10 @@ from os.path import dirname, join
 
 BOOKMAKER_T = typing.TypeVar('BOOKMAKER_T', bound='Bookmaker')
 
+DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bookmaker"]
+
 class Bookmaker:
     __ID_COUNTER = itertools.count()
-    DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bookmaker"]
 
     def __init__(self,
                  commission: float = DEFAULTS['commission'],
@@ -36,9 +37,9 @@ class Bookmaker:
             dict: The bookmaker as a dictionary.
         """
         result = {}
-        for key in self.DEFAULTS.keys():
+        for key in DEFAULTS.keys():
             current_value = getattr(self, key)
-            if current_value != self.DEFAULTS[key]:
+            if current_value != DEFAULTS[key]:
                 result[key] = getattr(self, key)
 
         return {**result, **{"id": self._id}}
@@ -53,7 +54,7 @@ class Bookmaker:
             Returns:
                 Bookmaker: The bookmaker created from the dictionary.
         """
-        __bookmaker_dict = {**cls.DEFAULTS, **__bookmaker_dict} # Ensure default keys are present
+        __bookmaker_dict = {**DEFAULTS, **__bookmaker_dict} # Ensure default keys are present
         bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"], __bookmaker_dict["ignore_wager_precision"], __bookmaker_dict["max_wager_count"])
         bookmaker._id = __bookmaker_dict["id"]  # override the generated id
         return bookmaker

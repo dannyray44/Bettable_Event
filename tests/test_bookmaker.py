@@ -1,15 +1,15 @@
 import unittest
 
-from betting_event.bookmaker import Bookmaker
+from betting_event.bookmaker import Bookmaker, DEFAULTS
 
 
 class TestBookmaker(unittest.TestCase):
     def test_init_defaults(self):
         bookmaker = Bookmaker()
-        self.assertEqual(bookmaker.commission, Bookmaker.DEFAULTS['commission'])
-        self.assertEqual(bookmaker.wager_limit, Bookmaker.DEFAULTS['wager_limit'])
-        self.assertEqual(bookmaker.ignore_wager_precision, Bookmaker.DEFAULTS['ignore_wager_precision'])
-        self.assertEqual(bookmaker.max_wager_count, Bookmaker.DEFAULTS['max_wager_count'])
+        self.assertEqual(bookmaker.commission, DEFAULTS['commission'])
+        self.assertEqual(bookmaker.wager_limit, DEFAULTS['wager_limit'])
+        self.assertEqual(bookmaker.ignore_wager_precision, DEFAULTS['ignore_wager_precision'])
+        self.assertEqual(bookmaker.max_wager_count, DEFAULTS['max_wager_count'])
 
     def test_init(self):
         bookmaker = Bookmaker(0.05, 1000, True, 100)
@@ -33,10 +33,10 @@ class TestBookmaker(unittest.TestCase):
 
     def test_from_dict_partial(self):
         bookmaker = Bookmaker.from_dict({"id": 5})
-        self.assertEqual(bookmaker.commission, Bookmaker.DEFAULTS['commission'])
-        self.assertEqual(bookmaker.wager_limit, Bookmaker.DEFAULTS['wager_limit'])
-        self.assertEqual(bookmaker.ignore_wager_precision, Bookmaker.DEFAULTS['ignore_wager_precision'])
-        self.assertEqual(bookmaker.max_wager_count, Bookmaker.DEFAULTS['max_wager_count'])
+        self.assertEqual(bookmaker.commission, DEFAULTS['commission'])
+        self.assertEqual(bookmaker.wager_limit, DEFAULTS['wager_limit'])
+        self.assertEqual(bookmaker.ignore_wager_precision, DEFAULTS['ignore_wager_precision'])
+        self.assertEqual(bookmaker.max_wager_count, DEFAULTS['max_wager_count'])
         self.assertEqual(bookmaker._id, 5)
 
     def test_as_dict_partial(self):
