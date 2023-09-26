@@ -169,7 +169,7 @@ class Event:
         payload = json.dumps(self.as_dict())
         headers = {
             'content-type': "application/json",
-            'X-RapidAPI-Key': json.load(open('api_keys.json', 'r'))['rapid_api'],
+            'X-RapidAPI-Key': api_key,
             'X-RapidAPI-Host': "multi-market-calculator.p.rapidapi.com"
         }
 
