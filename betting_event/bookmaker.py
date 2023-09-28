@@ -14,7 +14,8 @@ class Bookmaker:
                  commission: float = DEFAULTS['commission'],
                  wager_limit: float = DEFAULTS['wager_limit'],
                  ignore_wager_precision: bool = DEFAULTS['ignore_wager_precision'],
-                 max_wager_count: int = DEFAULTS['max_wager_count']
+                 max_wager_count: int = DEFAULTS['max_wager_count'],
+                 lowest_valid_wager: float = DEFAULTS['lowest_valid_wager']
                  ) -> None:
         """
         Args:
@@ -22,11 +23,13 @@ class Bookmaker:
             wager_limit (float): The maximum sum of all wagers with this bookmaker, usually set to balance at bookmaker. Defaults to -1.0 (no limit).
             ignore_wager_precision (bool): If True, Event.wager_precision will be ignored for wagers with this bookmaker. Defaults to False.
             max_wager_count (int): The maximum number of wagers with this bookmaker. Defaults to -1 (no limit).
+            lowest_valid_wager (float): The minimum wager size accepted by this bookmaker. Defaults to 0.01.
         """
         self.commission = commission
         self.wager_limit = wager_limit
         self.ignore_wager_precision = ignore_wager_precision
         self.max_wager_count = max_wager_count
+        self.lowest_valid_wager = lowest_valid_wager
 
         self._id = next(self.__ID_COUNTER)
 
@@ -55,7 +58,7 @@ class Bookmaker:
                 Bookmaker: The bookmaker created from the dictionary.
         """
         __bookmaker_dict = {**DEFAULTS, **__bookmaker_dict} # Ensure default keys are present
-        bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"], __bookmaker_dict["ignore_wager_precision"], __bookmaker_dict["max_wager_count"])
+        bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"], __bookmaker_dict["ignore_wager_precision"], __bookmaker_dict["max_wager_count"], __bookmaker_dict["lowest_valid_wager"])
         bookmaker._id = __bookmaker_dict["id"]  # override the generated id
         return bookmaker
 
