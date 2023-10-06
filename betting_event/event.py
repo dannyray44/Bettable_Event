@@ -92,6 +92,37 @@ class Event:
                     setattr(self.bets[index], attribute, getattr(bet, attribute))
 
         return self
+    
+    def add_bets(self: EVENT_T, bets: typing.List[BET_T]) -> EVENT_T:
+        """Adds multiple bets to the event. Faster that adding them individually.
+
+        Args:
+            bets (list[Bet]): The bets to add.
+        
+        Returns:
+            Event: This event object.
+        """
+
+        for bet in bets[::-1]:
+
+            if isinstance(bet.bookmaker, int):
+                for bookmaker in self.bookmakers:
+                    if bookmaker._id == bet.bookmaker:
+                        bet.bookmaker = bookmaker
+                        break
+                else:
+                    bet.bookmaker = bet.DefaultBookmaker
+
+            if bet in self.bets:
+                index = self.bets.index(bet)
+                for attribute in bet.__dict__:
+                    if getattr(self.bets[index], attribute) != getattr(bet, attribute):
+                        setattr(self.bets[index], attribute, getattr(bet, attribute))
+                bets.remove(bet)
+            
+        self.bets.extend(bets)
+
+        return self
 
     def as_dict(self, wagers_only: bool = False) -> typing.Dict[str, typing.Any]:
         """Returns the event as a dictionary, with values adjusted to match api formatting.
