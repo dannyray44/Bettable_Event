@@ -1,5 +1,6 @@
 import http.client
 import json
+from time import sleep
 import typing
 from os.path import dirname, join
 
@@ -163,7 +164,7 @@ class Event:
         Returns:
             Event: The event with the wagers updated.
         """
-
+        data = b'{"message":"Service Unavailable"}'
         conn = http.client.HTTPSConnection("multi-market-calculator.p.rapidapi.com")
 
         payload = json.dumps(self.as_dict())
@@ -173,10 +174,18 @@ class Event:
             'X-RapidAPI-Host': "multi-market-calculator.p.rapidapi.com"
         }
 
-        conn.request("POST", "/MultiMarket", payload, headers)
+        for _ in range(5):
+            conn.request("POST", "/MultiMarket", payload, headers)
 
-        res = conn.getresponse()
-        data = res.read()
+            res = conn.getresponse()
+            data = res.read()
+
+            if data == b'{"message":"Service Unavailable"}':
+                print("Service unavailable. Trying again.")
+                sleep(1)
+                continue
+            else:
+                break
 
         # print(data.decode("utf-8"))
 
