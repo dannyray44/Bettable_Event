@@ -88,6 +88,8 @@ class Event:
             self.bets.append(bet)
         else:
             for attribute in bet.__dict__:
+                if attribute == "previous_wager":
+                    bet.previous_wager += self.bets[index].wager
                 if getattr(self.bets[index], attribute) != getattr(bet, attribute):
                     setattr(self.bets[index], attribute, getattr(bet, attribute))
 
@@ -98,7 +100,7 @@ class Event:
 
         Args:
             bets (list[Bet]): The bets to add.
-        
+
         Returns:
             Event: This event object.
         """
@@ -113,13 +115,18 @@ class Event:
                 else:
                     bet.bookmaker = bet.DefaultBookmaker
 
+            if bet.bookmaker not in self.bookmakers:
+                self.add_bookmaker(bet.bookmaker)
+
             if bet in self.bets:
                 index = self.bets.index(bet)
                 for attribute in bet.__dict__:
+                    if attribute == "previous_wager":
+                        bet.previous_wager += self.bets[index].wager
                     if getattr(self.bets[index], attribute) != getattr(bet, attribute):
                         setattr(self.bets[index], attribute, getattr(bet, attribute))
                 bets.remove(bet)
-            
+
         self.bets.extend(bets)
 
         return self
