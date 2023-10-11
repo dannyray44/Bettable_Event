@@ -3,19 +3,21 @@ import json
 import typing
 from os.path import dirname, join
 
-BOOKMAKER_T = typing.TypeVar('BOOKMAKER_T', bound='Bookmaker')
 
-DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bookmaker"]
+GLOBAL_DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bookmaker"]
 
 class Bookmaker:
+    DEFAULTS = GLOBAL_DEFAULTS
     __ID_COUNTER = itertools.count()
 
     def __init__(self,
-                 commission: float = DEFAULTS['commission'],
-                 wager_limit: float = DEFAULTS['wager_limit'],
-                 ignore_wager_precision: bool = DEFAULTS['ignore_wager_precision'],
-                 max_wager_count: int = DEFAULTS['max_wager_count'],
-                 lowest_valid_wager: float = DEFAULTS['lowest_valid_wager']
+                 *args,
+                 commission: typing.Optional[float] = None,
+                 wager_limit: typing.Optional[float] = None,
+                 ignore_wager_precision: typing.Optional[bool] = None,
+                 max_wager_count: typing.Optional[int] = None,
+                 lowest_valid_wager: typing.Optional[float] = None,
+                 **kwargs
                  ) -> None:
         """
         Args:
@@ -25,44 +27,49 @@ class Bookmaker:
             max_wager_count (int): The maximum number of wagers with this bookmaker. Defaults to -1 (no limit).
             lowest_valid_wager (float): The minimum wager size accepted by this bookmaker. Defaults to 0.01.
         """
-        self.commission = commission
-        self.wager_limit = wager_limit
-        self.ignore_wager_precision = ignore_wager_precision
-        self.max_wager_count = max_wager_count
-        self.lowest_valid_wager = lowest_valid_wager
+        self.commission = self.DEFAULTS["commission"] if commission is None else commission
+        self.wager_limit = self.DEFAULTS["wager_limit"] if wager_limit is None else wager_limit
+        self.ignore_wager_precision = self.DEFAULTS["ignore_wager_precision"] if ignore_wager_precision is None else ignore_wager_precision
+        self.max_wager_count = self.DEFAULTS["max_wager_count"] if max_wager_count is None else max_wager_count
+        self.lowest_valid_wager = self.DEFAULTS["lowest_valid_wager"] if lowest_valid_wager is None else lowest_valid_wager
 
         self._id = next(self.__ID_COUNTER)
 
-    def as_dict(self) -> typing.Dict[str, typing.Union[float, int, bool]]:
+    def as_dict(self, verbose: bool = False, necessary_keys_only: bool = True) -> typing.Dict[str, typing.Union[float, int, bool]]:
         """Returns the bookmaker as a dictionary.
+
+        Args:
+            verbose (bool): If True, all attributes will be returned, even if they are the default value.
 
         Returns:
             dict: The bookmaker as a dictionary.
         """
-        result = {}
-        for key in DEFAULTS.keys():
-            current_value = getattr(self, key)
-            if current_value != DEFAULTS[key]:
-                result[key] = getattr(self, key)
-
-        return {**result, **{"id": self._id}}
+        necessary_keys = list(GLOBAL_DEFAULTS.keys()) + ["_id"]
+        return {key: value for key, value in self.__dict__.items() if (verbose or value != self.DEFAULTS.get(key, None)) and (not necessary_keys_only or key in necessary_keys)}
 
     @classmethod
-    def from_dict(cls: typing.Type[BOOKMAKER_T], __bookmaker_dict: dict) -> BOOKMAKER_T:
+    def from_dict(cls: typing.Type['BOOKMAKER_T'], _bookmaker_dict: dict) -> 'BOOKMAKER_T':
         """Creates a bookmaker from a dictionary.
 
             Args:
                 __bookmaker_dict (dict): The dictionary to create the bookmaker from.
-        
+
             Returns:
                 Bookmaker: The bookmaker created from the dictionary.
         """
-        __bookmaker_dict = {**DEFAULTS, **__bookmaker_dict} # Ensure default keys are present
-        bookmaker = cls(__bookmaker_dict["commission"], __bookmaker_dict["wager_limit"], __bookmaker_dict["ignore_wager_precision"], __bookmaker_dict["max_wager_count"], __bookmaker_dict["lowest_valid_wager"])
-        bookmaker._id = __bookmaker_dict["id"]  # override the generated id
+        id_key = "id"
+        if "_id" in _bookmaker_dict:
+            id_key = "_id"
+            
+        _bookmaker_dict = {**GLOBAL_DEFAULTS, **_bookmaker_dict} # Ensure default keys are present
+        bookmaker = cls(**_bookmaker_dict)
+        bookmaker._id = _bookmaker_dict.get(id_key, bookmaker._id)  # override the generated id
         return bookmaker
 
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Bookmaker):
             raise NotImplementedError
         return self._id == __value._id
+
+
+BOOKMAKER_T = typing.Union[typing.TypeVar('BOOKMAKER_T', bound='Bookmaker'), Bookmaker]

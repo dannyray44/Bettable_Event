@@ -1,45 +1,42 @@
-import http.client
 import json
-from time import sleep
 import typing
-from os.path import dirname, join
+from os import path
 
 from .bet import BET_T, Bet
 from .bookmaker import BOOKMAKER_T, Bookmaker
 
-EVENT_T = typing.TypeVar('EVENT_T', bound='Event')
-
-DEFAULTS: dict = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["event"]
-DEFAULTS["profit"] = tuple(DEFAULTS["profit"])
+GLOBAL_DEFAULTS: dict = json.load(open(path.join(path.dirname(__file__), "defaults.json"), "r"))["event"]
 
 class Event:
-    _BOOKMAKER_CLASS = Bookmaker
-    _BET_CLASS = Bet
+    DEFAULTS = GLOBAL_DEFAULTS
 
+    _BOOKMAKER_CLASS: typing.Type[BOOKMAKER_T] = Bookmaker
+    _BET_CLASS: typing.Type[BET_T] = Bet
 
     def __init__(self,
-                 wager_limit: float = DEFAULTS['wager_limit'],
-                 wager_precision: float = DEFAULTS['wager_precision'],
-                 profit: list[float] = DEFAULTS['profit'], # type: ignore
-                 no_draw: bool = DEFAULTS['no_draw'],
+                 wager_limit: typing.Optional[float] = None,
+                 wager_precision: typing.Optional[float] = None,
+                 profit: typing.Optional[typing.List[float]] = None,
+                 no_draw: typing.Optional[bool] = None,
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
-                 bets: typing.Optional[typing.List[BET_T]] = None
+                 bets: typing.Optional[typing.List[BET_T]] = None,
                  ) -> None:
     
-        self.wager_limit: float = wager_limit
-        self.wager_precision: float = wager_precision
-        self.profit: tuple[float, float] = tuple(profit) # type: ignore
-        self.no_draw: bool = no_draw
+        self.wager_limit: float = wager_limit if wager_limit is not None else self.DEFAULTS["wager_limit"]
+        self.wager_precision: float = wager_precision if wager_precision is not None else self.DEFAULTS["wager_precision"]
+        self.profit: typing.List[float] = profit if profit is not None else self.DEFAULTS["profit"]
+        self.no_draw: bool = no_draw if no_draw is not None else self.DEFAULTS["no_draw"]
 
-        if bets is None:
-            bets = []
-        if bookmakers is None:
-            bookmakers = []
+        self.bets: typing.List[BET_T] = []
+        self.bookmakers: typing.List[BOOKMAKER_T] = []
+        bets = bets if bets is not None else self.DEFAULTS["bets"]
+        bookmakers = bookmakers if bookmakers is not None else self.DEFAULTS["bookmakers"]
 
-        self.bets: typing.List[BET_T] = bets
-        self.bookmakers: typing.List[BOOKMAKER_T] = bookmakers
+        for bookmaker in bookmakers:
+            self.add_bookmaker(bookmaker)
+        self.add_bet(bets)
 
-    def add_bookmaker(self: EVENT_T, bookmaker) -> EVENT_T:
+    def add_bookmaker(self: 'EVENT_T', bookmaker: BOOKMAKER_T) -> 'EVENT_T':
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
 
         Args:
@@ -62,95 +59,53 @@ class Event:
 
         return self
 
-    def add_bet(self: EVENT_T, bet) -> EVENT_T:
-        """Adds a bet to the event. If the bet already exists, it will be updated.
-
-        Args:
-            bet (Bet): The bet to add/update.
-        
-        Returns:
-            Event: This event object.
-        """
-
-        if isinstance(bet.bookmaker, int):
-            for bookmaker in self.bookmakers:
-                if bookmaker._id == bet.bookmaker:
-                    bet.bookmaker = bookmaker
-                    break
-            else:
-                bet.bookmaker = bet.DefaultBookmaker
-
-        try:
-            index = self.bets.index(bet)
-        except ValueError:
-            if bet.bookmaker not in self.bookmakers:
-                self.add_bookmaker(bet.bookmaker)
-            self.bets.append(bet)
-        else:
-            for attribute in bet.__dict__:
-                if attribute == "previous_wager":
-                    bet.previous_wager += self.bets[index].wager
-                if getattr(self.bets[index], attribute) != getattr(bet, attribute):
-                    setattr(self.bets[index], attribute, getattr(bet, attribute))
-
-        return self
-    
-    def add_bets(self: EVENT_T, bets: typing.List[BET_T]) -> EVENT_T:
+    @typing.overload
+    def add_bet(self: 'EVENT_T', _new_bets: BET_T) -> 'EVENT_T': pass
+    @typing.overload
+    def add_bet(self: 'EVENT_T', _new_bets: typing.List[BET_T]) -> 'EVENT_T': pass
+    def add_bet(self: 'EVENT_T', _new_bets: typing.Union[typing.List[BET_T], BET_T]) -> 'EVENT_T':
         """Adds multiple bets to the event. Faster that adding them individually.
 
         Args:
-            bets (list[Bet]): The bets to add.
+            new_bets (list[Bet] | Bet): The bet or bets to add.
 
         Returns:
             Event: This event object.
         """
+        if not isinstance(_new_bets, list):
+            _new_bets = [_new_bets]
+        _new_bets = list(set(_new_bets))
 
-        for bet in bets[::-1]:
+        for new_bet in _new_bets[::-1]:
+            if new_bet.bookmaker not in self.bookmakers:
+                self.add_bookmaker(new_bet.bookmaker)
+            else:
+                new_bet.bookmaker = self.bookmakers[self.bookmakers.index(new_bet.bookmaker)]
 
-            if isinstance(bet.bookmaker, int):
-                for bookmaker in self.bookmakers:
-                    if bookmaker._id == bet.bookmaker:
-                        bet.bookmaker = bookmaker
-                        break
-                else:
-                    bet.bookmaker = bet.DefaultBookmaker
+            if new_bet in self.bets:
+                self.bets[self.bets.index(new_bet)].update_from_bet(new_bet)
+                _new_bets.remove(new_bet)
 
-            if bet.bookmaker not in self.bookmakers:
-                self.add_bookmaker(bet.bookmaker)
-
-            if bet in self.bets:
-                index = self.bets.index(bet)
-                for attribute in bet.__dict__:
-                    if attribute == "previous_wager":
-                        bet.previous_wager += self.bets[index].wager
-                    if getattr(self.bets[index], attribute) != getattr(bet, attribute):
-                        setattr(self.bets[index], attribute, getattr(bet, attribute))
-                bets.remove(bet)
-
-        self.bets.extend(bets)
-
+        self.bets.extend(_new_bets)
         return self
 
-    def as_dict(self, wagers_only: bool = False) -> typing.Dict[str, typing.Any]:
+    def as_dict(self, wagers_only: bool = False, verbose: bool = False, necessary_keys_only: bool = True) -> typing.Dict[str, typing.Any]:
         """Returns the event as a dictionary, with values adjusted to match api formatting.
 
         Returns:
             dict: The event as a dictionary.
         """
-        result = {}
-        for default_key, default_value in DEFAULTS.items():
-            if default_key in ["bookmakers", "bets"]:
-                continue
-            current_value = getattr(self, default_key)
-            if current_value != default_value:
-                result[default_key] = current_value
+        result = self.__dict__
+        for key in list(result.keys()):
+            if (not verbose and result[key] == self.DEFAULTS.get(key, None)) or (necessary_keys_only and key not in GLOBAL_DEFAULTS):
+                del result[key]
 
-        result["bookmakers"] = [bookmaker.as_dict() for bookmaker in self.bookmakers]
-        result["bets"] = [{key: val for key, val in bet.as_dict().items()} for bet in self.bets if not(wagers_only) or bet.wager != 0]
+        result["bookmakers"] = [bookmaker.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bookmaker in self.bookmakers]
+        result["bets"] = [bet.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bet in self.bets if not(wagers_only) or bet.wager != 0 or bet.previous_wager != 0]
         return result
 
     @classmethod
-    def from_dict(cls: typing.Type[EVENT_T], __event_dict: dict) -> EVENT_T:
+    def from_dict(cls: typing.Type['EVENT_T'], __event_dict: dict) -> 'EVENT_T':
         """Creates an event from a dictionary.
 
         Args:
@@ -161,81 +116,32 @@ class Event:
         """
 
         clean_dict = {}
-        for key in DEFAULTS.keys():
+        for key in cls.DEFAULTS.keys():
             if key in ["bookmakers", "bets"]:
                 continue
-            if key in __event_dict: # and __event_dict[key] != DEFAULTS[key]:
+            if key in __event_dict:
                 clean_dict[key] = __event_dict[key]
-                if key == "profit" and isinstance(clean_dict[key], list):
-                    clean_dict[key] = tuple(clean_dict[key])
-
-        # clean_dict["profit"] = tuple(clean_dict["profit"])
-
-        if "bookmakers" in __event_dict:
-            clean_dict["bookmakers"] = [cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict) for bookmaker_dict in __event_dict["bookmakers"]]
 
         current_inst = cls(**clean_dict)
 
-        if "bets" in __event_dict:
-            for bet_dict in __event_dict["bets"]:
-                if "bookmaker" in bet_dict and isinstance(bet_dict["bookmaker"], int):
-                    for bookmaker in current_inst.bookmakers:
-                        if bookmaker._id == bet_dict["bookmaker"]:
-                            bet_dict["bookmaker"] = bookmaker
-                            break
-                    else:
-                        bet_dict["bookmaker"] = cls._BET_CLASS.DefaultBookmaker
+        if "bookmakers" in __event_dict:
+            for bookmaker_dict in __event_dict["bookmakers"]:
+                current_inst.add_bookmaker(cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict))
 
-                current_inst.add_bet(cls._BET_CLASS.from_dict(bet_dict))
+        if "bets" in __event_dict:
+            new_bets = []
+            for bet_dict in __event_dict["bets"]:
+                if "bookmaker" in bet_dict:
+                    if isinstance(bet_dict["bookmaker"], int):
+                        for bookmaker in current_inst.bookmakers:
+                            if bookmaker._id == bet_dict["bookmaker"]:
+                                bet_dict["bookmaker"] = bookmaker
+                                break
+                new_bets.append(cls._BET_CLASS(**bet_dict))
+            current_inst.add_bet(new_bets)
         else:
             raise ValueError("No bets in event dictionary.")
 
         return current_inst
 
-    def send_to_RapidAPI(self, api_key: str) -> 'Event':
-        """Sends the event to the multi-market calculator at RapidAPI to calculate the optimal
-        wagers.
-
-        Args:
-            api_key (str): Your 'X-RapidAPI-Key' provided when you signed up.
-
-        Returns:
-            Event: The event with the wagers updated.
-        """
-        data = b'{"message":"Service Unavailable"}'
-        conn = http.client.HTTPSConnection("multi-market-calculator.p.rapidapi.com")
-
-        payload = json.dumps(self.as_dict())
-        headers = {
-            'content-type': "application/json",
-            'X-RapidAPI-Key': api_key,
-            'X-RapidAPI-Host': "multi-market-calculator.p.rapidapi.com"
-        }
-
-        for _ in range(5):
-            conn.request("POST", "/MultiMarket", payload, headers)
-
-            res = conn.getresponse()
-            data = res.read()
-
-            if data == b'{"message":"Service Unavailable"}':
-                print("Service unavailable. Trying again.")
-                sleep(1)
-                continue
-            else:
-                break
-
-        # print(data.decode("utf-8"))
-
-        if res.status != 200:
-            print("Error sending event to RapidAPI: ", data)
-            return self
-
-        updated_event = Event.from_dict(json.loads(data))
-
-        for updated_bet in updated_event.bets:
-            self.add_bet(updated_bet)
-
-        self.profit = updated_event.profit
-
-        return self
+EVENT_T = typing.Union[typing.TypeVar('EVENT_T', bound='Event'), Event]

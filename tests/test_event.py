@@ -65,7 +65,7 @@ class TestEvent(unittest.TestCase):
 
         self.assertEqual(event.wager_limit, 1000)
         self.assertEqual(event.wager_precision, 5)
-        self.assertEqual(event.profit, (101.5, 101.5))
+        self.assertEqual(event.profit, [101.5, 101.5])
         self.assertEqual(len(event.bookmakers), 2)
         self.assertEqual(len(event.bets), 2)
         self.assertIs(event.bets[0].bookmaker, event.bookmakers[0])
@@ -106,5 +106,5 @@ class TestEvent(unittest.TestCase):
                     "odds": 2.5
                 }
             ],
-            "bookmakers": [{'id': 0}]
+            "bookmakers": [{'_id': 0}]
         })

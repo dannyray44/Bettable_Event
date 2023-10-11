@@ -4,11 +4,7 @@ import re
 import typing
 from os.path import dirname, join
 
-from .bookmaker import Bookmaker
-
-BET_T = typing.TypeVar('BET_T', bound='Bet')
-
-DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bet"]
+from .bookmaker import Bookmaker, BOOKMAKER_T
 
 class BetType(enum.Enum):
     """Enum of currently accepted bet types"""
@@ -119,18 +115,31 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
         ['home yes', 'away no', 'home no', 'away yes']),
 }
 
+DefaultsType = typing.TypedDict("DefaultsType", {
+    "bookmaker": BOOKMAKER_T,
+    "lay": bool,
+    "volume": float,
+    "previous_wager": float,
+    "wager": float
+})
+
+GLOBAL_DEFAULTS: DefaultsType = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bet"]
+GLOBAL_DEFAULTS["bookmaker"] = Bookmaker()
+
 class Bet:
-    DefaultBookmaker = Bookmaker()
+    DEFAULTS: DefaultsType = GLOBAL_DEFAULTS
 
     def __init__(self,
-                 bet_type: typing.Union[BetType, str, int],
+                 bet_type: typing.Union[BetType, int, str],
                  value: str,
                  odds: float,
-                 bookmaker: typing.Optional[Bookmaker] = None,
-                 lay: bool = DEFAULTS["lay"],
-                 volume: float = DEFAULTS["volume"],
-                 previous_wager: float = DEFAULTS["previous_wager"], 
-                 wager: float = DEFAULTS["wager"]
+                #  *args,
+                 bookmaker: typing.Optional[typing.Union[Bookmaker, int]] = None,
+                 lay: typing.Optional[bool] = None,
+                 volume: typing.Optional[float] = None,
+                 previous_wager: typing.Optional[float] = None, 
+                 wager: typing.Optional[float] = None,
+                #  **kwargs
                  ) -> None:
         """Bet class constructor
 
@@ -147,17 +156,22 @@ class Bet:
             DEFAULTS to 0.0. Useful for when a bet has been partially matched and you want to
             recalculate.
         """
-        if bookmaker is None:
-            bookmaker = self.DefaultBookmaker
-        self.bookmaker = bookmaker
 
-        self.bet_type: BetType = BetType[bet_type] if isinstance(bet_type, str) else BetType(bet_type)
+        if isinstance(bookmaker, int):
+            _temp_bookmaker = Bookmaker()
+            _temp_bookmaker._id = bookmaker
+            bookmaker = _temp_bookmaker
+
+        self.bookmaker: BOOKMAKER_T = bookmaker if bookmaker is not None else self.DEFAULTS["bookmaker"]
+
+        self.bet_type: BetType = BetType(bet_type) if not isinstance(bet_type, str) else BetType[bet_type]
+
         self.value: str = value
         self.odds: float = odds
-        self.lay: bool = lay
-        self.volume: float = volume
-        self.previous_wager: float = previous_wager
-        self.wager: float = wager
+        self.lay: bool = lay if lay is not None else self.DEFAULTS["lay"]
+        self.volume: float = volume if volume is not None else self.DEFAULTS["volume"]
+        self.previous_wager: float = previous_wager if previous_wager is not None else self.DEFAULTS["previous_wager"]
+        self.wager: float = wager if wager is not None else self.DEFAULTS["wager"]
 
         if ValueCheck[self.bet_type][0].fullmatch(self.value.lower()) is None:
             raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
@@ -170,40 +184,48 @@ class Bet:
         return self.bet_type == __new_bet.bet_type and self.bookmaker == __new_bet.bookmaker and \
             self.value == __new_bet.value and self.odds == __new_bet.odds and self.lay == __new_bet.lay
 
-    def as_dict(self) -> dict:
+    def __hash__(self) -> int:
+        return hash((self.bet_type, self.bookmaker._id, self.value, self.odds, self.lay))
+
+    def update_from_bet(self, __new_bet: 'Bet') -> None:
+        """Updates this bet from another bet.
+
+        Args:
+            __new_bet (Bet): The bet to update from.
+        """
+        for key in self.DEFAULTS.keys():
+            if key in ["bookmaker", "bet_type", "value", "odds", "lay"]:
+                continue
+            setattr(self, key, getattr(__new_bet, key))
+
+    def as_dict(self, verbose: bool = False, necessary_keys_only: bool = True) -> dict:
         """Returns the bet as a dictionary.
+
+        Args:
+            verbose (bool): If True, default values will be included in the dictionary. Defaults to False.
+            necessary_keys_only (bool): If True, only the keys necessary for wager calculation are included. Defaults to True.
 
         Returns:
             dict: This bet represented as a dictionary.
         """
-        defaults_removed_dict = {}
-        for default_key, default_value in DEFAULTS.items():
-            current_value = getattr(self, default_key)
-            if isinstance(current_value, Bookmaker):
-                current_value = current_value._id
-            if current_value != default_value:
-                defaults_removed_dict[default_key] = current_value
 
-        return {
-            **{"bet_type": self.bet_type.name, "value": self.value, "odds": self.odds},
-            **defaults_removed_dict
-        }
+        result: dict = self.__dict__
+        necessary_keys = ["bet_type", "value", "odds"] + list(GLOBAL_DEFAULTS.keys())
 
-    @classmethod
-    def from_dict(cls: typing.Type[BET_T], __bet_dict: dict) -> BET_T:
-        """Creates a bet from a dictionary.
+        if not verbose or necessary_keys_only:
+            for key in list(result.keys()):
+                if (not verbose and result[key] == self.DEFAULTS.get(key, None)) or (necessary_keys_only and key not in necessary_keys):
+                    del result[key]
 
-        Args:
-            __bet_dict (dict): The dictionary to create the bet from.
+        result["bet_type"] = self.bet_type.name
+        if "bookmaker" in result:
+            result["bookmaker"] = self.bookmaker._id
 
-        Returns:
-            Bet: The bet created from the dictionary.
-        """
-
-        return cls(**{key: __bet_dict[key] for key in ["bet_type", "value", "odds"]},
-                   **{key: __bet_dict[key] for key in DEFAULTS if key in __bet_dict})
+        return result
 
     def wager_placed(self):
         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
         self.previous_wager += self.wager
         self.wager = 0.0
+
+BET_T = typing.Union[typing.TypeVar('BET_T', bound='Bet'), Bet]
