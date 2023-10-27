@@ -71,8 +71,8 @@ class Event:
         Returns:
             Event: This event object.
         """
-
-        if isinstance(bet.bookmaker, int):
+        # if isinstance(bet.bookmaker, int):
+        if not issubclass(type(bet.bookmaker), Bookmaker):
             for bookmaker in self.bookmakers:
                 if bookmaker._id == bet.bookmaker:
                     bet.bookmaker = bookmaker
@@ -107,7 +107,8 @@ class Event:
 
         for bet in bets[::-1]:
 
-            if isinstance(bet.bookmaker, int):
+            # if isinstance(bet.bookmaker, int):
+            if not issubclass(type(bet.bookmaker), Bookmaker):
                 for bookmaker in self.bookmakers:
                     if bookmaker._id == bet.bookmaker:
                         bet.bookmaker = bookmaker
@@ -178,7 +179,8 @@ class Event:
 
         if "bets" in __event_dict:
             for bet_dict in __event_dict["bets"]:
-                if "bookmaker" in bet_dict and isinstance(bet_dict["bookmaker"], int):
+                # if "bookmaker" in bet_dict and isinstance(bet_dict["bookmaker"], int):
+                if "bookmaker" in bet_dict and not issubclass(type(bet_dict["bookmaker"]), Bookmaker):
                     for bookmaker in current_inst.bookmakers:
                         if bookmaker._id == bet_dict["bookmaker"]:
                             bet_dict["bookmaker"] = bookmaker

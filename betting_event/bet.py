@@ -153,7 +153,7 @@ class Bet:
 
         self.bet_type: BetType = BetType[bet_type] if isinstance(bet_type, str) else BetType(bet_type)
         self.value: str = value
-        self.odds: float = odds
+        self.odds: float = float(odds)
         self.lay: bool = lay
         self.volume: float = volume
         self.previous_wager: float = previous_wager
