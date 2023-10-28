@@ -223,10 +223,14 @@ class Bet:
 
         return result
 
-    def wager_placed(self):
+    def wager_placed(self, wager_size: typing.Optional[float] = None) -> float:
         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
-        self.previous_wager += self.wager
-        self.wager = 0.0
+        if wager_size is None:
+            self.previous_wager += self.wager
+        else:
+            self.previous_wager += wager_size
+        # self.wager = 0.0
+        return self.previous_wager
 
     def exposure(self, wager: typing.Optional[float] = None) -> float:
         """Returns the exposure (amount that could be lost) of the bet given a wager. If no wager is provided, self.previous_wager will be used.
@@ -245,3 +249,4 @@ class Bet:
         return wager
 
 BET_T = typing.Union[typing.TypeVar('BET_T', bound='Bet'), Bet]
+
