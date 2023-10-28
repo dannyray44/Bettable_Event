@@ -154,10 +154,10 @@ class Bet:
         self.bet_type: BetType = BetType[bet_type] if isinstance(bet_type, str) else BetType(bet_type)
         self.value: str = value
         self.odds: float = float(odds)
-        self.lay: bool = lay
-        self.volume: float = volume
-        self.previous_wager: float = previous_wager
-        self.wager: float = wager
+        self.lay: bool = lay if not isinstance(lay, str) else (lay.lower() != "false")
+        self.volume: float = float(volume)
+        self.previous_wager: float = float(previous_wager)
+        self.wager: float = float(wager)
 
         if ValueCheck[self.bet_type][0].fullmatch(self.value.lower()) is None:
             raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
