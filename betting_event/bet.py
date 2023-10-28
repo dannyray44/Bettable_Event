@@ -134,11 +134,11 @@ class Bet:
                  value: str,
                  odds: float,
                 #  *args,
-                 bookmaker: typing.Optional[typing.Union[Bookmaker, int]] = None,
-                 lay: typing.Optional[bool] = None,
-                 volume: typing.Optional[float] = None,
-                 previous_wager: typing.Optional[float] = None, 
-                 wager: typing.Optional[float] = None,
+                 bookmaker: typing.Optional[Bookmaker] = None,
+                 lay: bool = DEFAULTS["lay"],
+                 volume: float = DEFAULTS["volume"],
+                 previous_wager: float = DEFAULTS["previous_wager"], 
+                 wager: float = DEFAULTS["wager"],
                 #  **kwargs
                  ) -> None:
         """Bet class constructor
@@ -167,11 +167,11 @@ class Bet:
         self.bet_type: BetType = BetType(bet_type) if not isinstance(bet_type, str) else BetType[bet_type]
 
         self.value: str = value
-        self.odds: float = odds
-        self.lay: bool = lay if lay is not None else self.DEFAULTS["lay"]
-        self.volume: float = volume if volume is not None else self.DEFAULTS["volume"]
-        self.previous_wager: float = previous_wager if previous_wager is not None else self.DEFAULTS["previous_wager"]
-        self.wager: float = wager if wager is not None else self.DEFAULTS["wager"]
+        self.odds: float = float(odds)
+        self.lay: bool = lay if not isinstance(lay, str) else (lay.lower() != "false")
+        self.volume: float = float(volume)
+        self.previous_wager: float = float(previous_wager)
+        self.wager: float = float(wager)
 
         if ValueCheck[self.bet_type][0].fullmatch(self.value.lower()) is None:
             raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
