@@ -228,4 +228,20 @@ class Bet:
         self.previous_wager += self.wager
         self.wager = 0.0
 
+    def exposure(self, wager: typing.Optional[float] = None) -> float:
+        """Returns the exposure (amount that could be lost) of the bet given a wager. If no wager is provided, self.previous_wager will be used.
+
+        Args:
+            wager (float): The wager to calculate the exposure for. If not provided, self.previous_wager will be used.
+
+        Returns:
+            float: The exposure for this bet.
+        """
+        if wager is None:
+            wager = self.previous_wager
+
+        if self.lay:
+            return wager * (self.odds - 1.0)
+        return wager
+
 BET_T = typing.Union[typing.TypeVar('BET_T', bound='Bet'), Bet]
