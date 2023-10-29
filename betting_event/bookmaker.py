@@ -49,7 +49,7 @@ class Bookmaker:
             dict: The bookmaker as a dictionary.
         """
         necessary_keys = ["id"] + list(GLOBAL_DEFAULTS.keys())
-        basic_result = {key: value for key, value in self.__dict__.items() if (verbose or value != self.DEFAULTS.get(key, None)) and (not necessary_keys_only or key in necessary_keys)}
+        basic_result = {key: value for key, value in self.__dict__.copy().items() if (verbose or value != self.DEFAULTS.get(key, None)) and (not necessary_keys_only or key in necessary_keys)}
         # basic_result.pop("_id", None)
         basic_result.pop("_Bookmaker__kwargs", None)
         return {**basic_result, **self.__kwargs}

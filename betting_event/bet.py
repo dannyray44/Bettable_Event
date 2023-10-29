@@ -215,7 +215,7 @@ class Bet:
             dict: This bet represented as a dictionary.
         """
 
-        result: dict = self.__dict__
+        result: dict = self.__dict__.copy()
         necessary_keys = ["bet_type", "value", "odds"] + list(GLOBAL_DEFAULTS.keys())
 
         if not verbose or necessary_keys_only:

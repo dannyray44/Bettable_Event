@@ -113,7 +113,7 @@ class Event:
         Returns:
             dict: The event as a dictionary.
         """
-        result = self.__dict__
+        result = self.__dict__.copy()
         # result["_Event__kwargs"]["errors"].extend(result["errors"])
         for key in list(result.keys()):
             if key == "_Event__kwargs" or key == "errors":
@@ -178,7 +178,7 @@ class Event:
         if not isinstance(current_inst.no_draw, bool):
             current_inst.errors.append(f'Inappropriate "no_draw": {current_inst.no_draw} must be a bool. "false" also accepted')
 
-        print(current_inst.bets[0].bookmaker)
+        # print(current_inst.bets[0].bookmaker)
         return current_inst
 
 EVENT_T = typing.Union[typing.TypeVar('EVENT_T', bound='Event'), Event]
