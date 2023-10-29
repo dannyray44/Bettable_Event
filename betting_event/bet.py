@@ -135,11 +135,11 @@ class Bet:
                  odds: float,
                 #  *args,
                  bookmaker: typing.Optional[Bookmaker] = None,
-                 lay: bool = DEFAULTS["lay"],
-                 volume: float = DEFAULTS["volume"],
-                 previous_wager: float = DEFAULTS["previous_wager"], 
-                 wager: float = DEFAULTS["wager"],
-                #  **kwargs
+                 lay: typing.Optional[bool] = None,
+                 volume: typing.Optional[float] = None,
+                 previous_wager: typing.Optional[float] = None, 
+                 wager: typing.Optional[float] = None,
+                 **kwargs: typing.Any
                  ) -> None:
         """Bet class constructor
 
@@ -157,26 +157,32 @@ class Bet:
             recalculate.
         """
 
-        if isinstance(bookmaker, int):
-            _temp_bookmaker = Bookmaker()
-            _temp_bookmaker._id = bookmaker
-            bookmaker = _temp_bookmaker
+        # bookmaker = self.DEFAULTS["bookmaker"] if bookmaker is None else bookmaker
+        # if not issubclass(type(bookmaker), Bookmaker):
+            # _temp_bookmaker = Bookmaker()
+            # _temp_bookmaker._id = bookmaker
+            # bookmaker = _temp_bookmaker
 
-        self.bookmaker: BOOKMAKER_T = bookmaker if bookmaker is not None else self.DEFAULTS["bookmaker"]
+        if bookmaker is None:
+            bookmaker = self.DEFAULTS["bookmaker"]
+        self.bookmaker: Bookmaker = bookmaker if issubclass(type(bookmaker), Bookmaker) else Bookmaker(id= bookmaker)
 
         self.bet_type: BetType = BetType(bet_type) if not isinstance(bet_type, str) else BetType[bet_type]
 
         self.value: str = value
         self.odds: float = float(odds)
+        if lay is None:
+            lay = self.DEFAULTS["lay"]
         self.lay: bool = lay if not isinstance(lay, str) else (lay.lower() != "false")
-        self.volume: float = float(volume)
-        self.previous_wager: float = float(previous_wager)
-        self.wager: float = float(wager)
+        self.volume: float = self.DEFAULTS['volume'] if volume is None else float(volume) 
+        self.previous_wager: float = self.DEFAULTS['previous_wager'] if previous_wager is None else float(previous_wager)
+        self.wager: float = self.DEFAULTS['wager'] if wager is None else float(wager)
+        self.__kwargs: typing.Dict[str, typing.Any] = kwargs
 
         if ValueCheck[self.bet_type][0].fullmatch(self.value.lower()) is None:
-            raise ValueError(f"Bet value '{self.value}' is not valid for bet type " +
-                f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " + 
-                f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}\"")
+            raise ValueError( f"Bet value '{self.value}' is not valid for bet type " +
+                f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " +
+                f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}")
 
     def __eq__(self, __new_bet: object) -> bool:
         if not isinstance(__new_bet, Bet):
@@ -185,7 +191,7 @@ class Bet:
             self.value == __new_bet.value and self.odds == __new_bet.odds and self.lay == __new_bet.lay
 
     def __hash__(self) -> int:
-        return hash((self.bet_type, self.bookmaker._id, self.value, self.odds, self.lay))
+        return hash((self.bet_type, self.bookmaker.id, self.value, self.odds, self.lay))
 
     def update_from_bet(self, __new_bet: 'Bet') -> None:
         """Updates this bet from another bet.
@@ -219,9 +225,36 @@ class Bet:
 
         result["bet_type"] = self.bet_type.name
         if "bookmaker" in result:
-            result["bookmaker"] = self.bookmaker._id
+            result["bookmaker"] = self.bookmaker.id
 
         return result
+
+    @classmethod
+    def from_dict(cls, bet_dict: dict) -> 'Bet':
+        """Creates a bet from a dictionary. Slower that using the constructor but with added error checking.
+
+        Args:
+            bet_dict (dict): The dictionary to create the bet from.
+
+        Returns:
+            str: The error message if the bet could not be created.
+        """
+
+        try:
+            new_bet = cls(**bet_dict)
+        except TypeError as e:
+            raise TypeError(f"A value in bet is of the wrong type (e.g a list instead of a float): {bet_dict}")
+        except KeyError as e:
+            raise KeyError(f"KeyError, likely due to invalid bet_type: {bet_dict}")
+
+        if new_bet.odds <= 1.0:
+            raise ValueError(f"Bet odds '{new_bet.odds}' is not valid. Must be a positive float greater than 1.0. AKA decimal odds format.")
+        if new_bet.volume < 0.0 and new_bet.volume != -1.0:
+            raise ValueError(f"Bet volume '{new_bet.volume}' is not valid. Must be a positive float or -1.0.")
+        if new_bet.previous_wager < 0.0:
+            raise ValueError(f"Bet previous_wager '{new_bet.previous_wager}' is not valid. Must be a non negative float.")
+
+        return new_bet
 
     def wager_placed(self, wager_size: typing.Optional[float] = None) -> float:
         "Sets the wager placed to the previous wager + the current wager. Also resets the current wager."
@@ -249,4 +282,3 @@ class Bet:
         return wager
 
 BET_T = typing.Union[typing.TypeVar('BET_T', bound='Bet'), Bet]
-

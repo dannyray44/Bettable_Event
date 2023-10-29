@@ -25,7 +25,7 @@ class TestEvent(unittest.TestCase):
         return new_event
 
     def test_from_dict_full(self):
-        event = b_event.Event.from_dict({
+        test_event = b_event.Event.from_dict({
             "wager_limit": 1000,
             "wager_precision": 5,
             "profit": [101.5, 101.5],
@@ -63,12 +63,18 @@ class TestEvent(unittest.TestCase):
             ]
         })
 
-        self.assertEqual(event.wager_limit, 1000)
-        self.assertEqual(event.wager_precision, 5)
-        self.assertEqual(event.profit, [101.5, 101.5])
-        self.assertEqual(len(event.bookmakers), 2)
-        self.assertEqual(len(event.bets), 2)
-        self.assertIs(event.bets[0].bookmaker, event.bookmakers[0])
+        print(test_event.bets[0].bookmaker)
+
+        self.assertEqual(test_event.wager_limit, 1000)
+        self.assertEqual(test_event.wager_precision, 5)
+        self.assertEqual(test_event.profit, [101.5, 101.5])
+        self.assertEqual(len(test_event.bookmakers), 2)
+        self.assertEqual(len(test_event.bets), 2)
+        for bet in test_event.bets:
+            if bet.value == "over 2.5":
+                self.assertIs(bet.bookmaker, test_event.bookmakers[0])
+            elif bet.value == "under 2.5":
+                self.assertIs(bet.bookmaker, test_event.bookmakers[1])
 
     def test_from_dict_partial(self):
         event = b_event.Event.from_dict({
@@ -91,7 +97,7 @@ class TestEvent(unittest.TestCase):
         self.assertIs(event.bets[1].bookmaker, event.bookmakers[0])
 
     def test_as_dict_partial(self):
-        event = b_event.Event()
+        event = b_event.Event(test_key="test_value", test_key2="test_value2")
         event.add_bet(b_event.Bet(bet_type=b_event.BetType.Goals_OverUnder, value="over 2.5", odds=1.5))
         event.add_bet(b_event.Bet(bet_type=b_event.BetType.Goals_OverUnder, value="under 2.5", odds=2.5))
         self.assertEqual(event.as_dict(), {
@@ -106,5 +112,21 @@ class TestEvent(unittest.TestCase):
                     "odds": 2.5
                 }
             ],
-            "bookmakers": [{'_id': 0}]
+            "bookmakers": [{'id': 0}],
+            "test_key": "test_value",
+            "test_key2": "test_value2"
         })
+
+    def test_invalid_event_dict(self):
+        event = b_event.Event.from_dict({
+            "bets": [
+                {"bet_type": "MatchWinner", "value": "home", "odds": [2.5, 3.6]},
+                {"bet_type": "invalid", "value": "home", "odds": 2.5},
+                {"bet_type": "MatchWinner", "value": "invalid", "odds": 2.5},
+                {"bet_type": "MatchWinner", "value": "home", "odds": -2.5},
+                {"bet_type": "MatchWinner", "value": "home", "odds": 2.5}       # the valid bet
+            ]
+        })
+
+        self.assertEqual(len(event.errors), 4)
+        self.assertEqual(len(event.bets), 1)

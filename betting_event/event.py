@@ -20,12 +20,14 @@ class Event:
                  no_draw: typing.Optional[bool] = None,
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None,
+                 **kwargs: typing.Any
                  ) -> None:
     
-        self.wager_limit: float = wager_limit if wager_limit is not None else self.DEFAULTS["wager_limit"]
-        self.wager_precision: float = wager_precision if wager_precision is not None else self.DEFAULTS["wager_precision"]
-        self.profit: typing.List[float] = profit if profit is not None else self.DEFAULTS["profit"]
+        self.wager_limit: float = float(wager_limit) if wager_limit is not None else self.DEFAULTS["wager_limit"]
+        self.wager_precision: float = float(wager_precision) if wager_precision is not None else self.DEFAULTS["wager_precision"]
+        self.profit: typing.List[float] = [float(p) for p in profit] if profit is not None else self.DEFAULTS["profit"]
         self.no_draw: bool = no_draw if no_draw is not None else self.DEFAULTS["no_draw"]
+        
 
         self.bets: typing.List[BET_T] = []
         self.bookmakers: typing.List[BOOKMAKER_T] = []
@@ -35,6 +37,9 @@ class Event:
         for bookmaker in bookmakers:
             self.add_bookmaker(bookmaker)
         self.add_bet(bets)
+
+        self.errors: typing.List[str] = kwargs.pop("errors", [])
+        self.__kwargs: typing.Dict[str, typing.Any] = kwargs
 
     def add_bookmaker(self: 'EVENT_T', bookmaker: BOOKMAKER_T) -> 'EVENT_T':
         """Adds a bookmaker to the event. If the bookmaker already exists, it will be updated.
@@ -60,18 +65,30 @@ class Event:
         return self
 
     @typing.overload
-    def add_bet(self: 'EVENT_T', _new_bets: BET_T) -> 'EVENT_T': pass
-    @typing.overload
-    def add_bet(self: 'EVENT_T', _new_bets: typing.List[BET_T]) -> 'EVENT_T': pass
-    def add_bet(self: 'EVENT_T', _new_bets: typing.Union[typing.List[BET_T], BET_T]) -> 'EVENT_T':
-        """Adds multiple bets to the event. Faster that adding them individually.
-
+    def add_bet(self: 'EVENT_T', _new_bets: BET_T) -> 'EVENT_T': 
+        """Adds a bet to the event. If the bet already exists, it will be updated.
+        
         Args:
-            new_bets (list[Bet] | Bet): The bet or bets to add.
+            new_bet (Bet): The bet to add.
 
         Returns:
             Event: This event object.
         """
+        pass
+    
+    @typing.overload
+    def add_bet(self: 'EVENT_T', _new_bets: typing.List[BET_T]) -> 'EVENT_T':
+        """Adds multiple bets to the event. Faster that adding them individually.
+        
+        Args:
+            new_bets (list[Bet]): The bets to add.
+
+        Returns:
+            Event: This event object.
+        """
+        pass
+
+    def add_bet(self: 'EVENT_T', _new_bets: typing.Union[typing.List[BET_T], BET_T]) -> 'EVENT_T':
         if not isinstance(_new_bets, list):
             _new_bets = [_new_bets]
         _new_bets = list(set(_new_bets))
@@ -87,6 +104,7 @@ class Event:
                 _new_bets.remove(new_bet)
 
         self.bets.extend(_new_bets)
+
         return self
 
     def as_dict(self, wagers_only: bool = False, verbose: bool = False, necessary_keys_only: bool = True) -> typing.Dict[str, typing.Any]:
@@ -96,9 +114,15 @@ class Event:
             dict: The event as a dictionary.
         """
         result = self.__dict__
+        # result["_Event__kwargs"]["errors"].extend(result["errors"])
         for key in list(result.keys()):
+            if key == "_Event__kwargs" or key == "errors":
+                continue
             if (not verbose and result[key] == self.DEFAULTS.get(key, None)) or (necessary_keys_only and key not in GLOBAL_DEFAULTS):
                 del result[key]
+        result.update(result.pop("_Event__kwargs", {}))
+        if not result["errors"]:
+            del result["errors"]
 
         result["bookmakers"] = [bookmaker.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bookmaker in self.bookmakers]
         result["bets"] = [bet.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bet in self.bets if not(wagers_only) or bet.wager != 0 or bet.previous_wager != 0]
@@ -114,9 +138,8 @@ class Event:
         Returns:
             Event: The event created from the dictionary.
         """
-
         clean_dict = {}
-        for key in cls.DEFAULTS.keys():
+        for key in __event_dict:
             if key in ["bookmakers", "bets"]:
                 continue
             if key in __event_dict:
@@ -129,19 +152,33 @@ class Event:
                 current_inst.add_bookmaker(cls._BOOKMAKER_CLASS.from_dict(bookmaker_dict))
 
         if "bets" in __event_dict:
-            new_bets = []
+            new_bets: typing.List[BET_T] = []
             for bet_dict in __event_dict["bets"]:
                 if "bookmaker" in bet_dict:
-                    if isinstance(bet_dict["bookmaker"], int):
+                    if not issubclass(type(bet_dict["bookmaker"]), Bookmaker):
                         for bookmaker in current_inst.bookmakers:
-                            if bookmaker._id == bet_dict["bookmaker"]:
+                            if bookmaker.id == bet_dict["bookmaker"]:
                                 bet_dict["bookmaker"] = bookmaker
                                 break
-                new_bets.append(cls._BET_CLASS(**bet_dict))
-            current_inst.add_bet(new_bets)
-        else:
-            raise ValueError("No bets in event dictionary.")
+                try:
+                    new_bet = cls._BET_CLASS.from_dict(bet_dict)
+                except Exception as err:
+                    current_inst.errors.append(str(err))
+                else:
+                    new_bets.append(new_bet)
 
+            current_inst.add_bet(new_bets)
+
+        if not isinstance(current_inst.wager_limit, float) or (current_inst.wager_limit < 0 and current_inst.wager_limit != -1):
+            current_inst.errors.append(f'Inappropriate "wager_limit": {current_inst.wager_limit} must be a positive float or -1')
+        if not isinstance(current_inst.wager_precision, float) or current_inst.wager_precision <= 0:
+            current_inst.errors.append(f'Inappropriate "wager_precision": {current_inst.wager_precision} must be a positive float')
+        if not isinstance(current_inst.profit, list) or len(current_inst.profit) != 2 or any(not isinstance(p, float) for p in current_inst.profit):
+            current_inst.errors.append(f'Inappropriate "profit": {current_inst.profit} must be a list of two floats')
+        if not isinstance(current_inst.no_draw, bool):
+            current_inst.errors.append(f'Inappropriate "no_draw": {current_inst.no_draw} must be a bool. "false" also accepted')
+
+        print(current_inst.bets[0].bookmaker)
         return current_inst
 
 EVENT_T = typing.Union[typing.TypeVar('EVENT_T', bound='Event'), Event]
