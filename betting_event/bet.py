@@ -239,13 +239,19 @@ class Bet:
         Returns:
             str: The error message if the bet could not be created.
         """
+        printable_dict = bet_dict.copy()
+        printable_dict["bookmaker"] = bet_dict["bookmaker"].id
+
+        for required_key in ["bet_type", "value", "odds"]:
+            if required_key not in bet_dict:
+                raise KeyError(f"Missing required key '{required_key}' in bet_dict: {printable_dict}")
 
         try:
             new_bet = cls(**bet_dict)
         except TypeError as e:
-            raise TypeError(f"A value in bet is of the wrong type (e.g a list instead of a float): {bet_dict}")
+            raise TypeError(f"A value in bet is of the wrong type (e.g a list instead of a float): {printable_dict}")
         except KeyError as e:
-            raise KeyError(f"KeyError, likely due to invalid bet_type: {bet_dict}")
+            raise KeyError(f"KeyError, likely due to invalid bet_type: {printable_dict}")
 
         if new_bet.odds <= 1.0:
             raise ValueError(f"Bet odds '{new_bet.odds}' is not valid. Must be a positive float greater than 1.0. AKA decimal odds format.")

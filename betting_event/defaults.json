@@ -4,6 +4,8 @@
         "wager_precision": 0.01,
         "profit": [0.0, 0.0],
         "no_draw": false,
+        "max_process_time": 25.0,
+        "total_max_wager_count": -1,
         "bookmakers": [],
         "bets": []
     },

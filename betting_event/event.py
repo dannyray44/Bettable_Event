@@ -18,6 +18,8 @@ class Event:
                  wager_precision: typing.Optional[float] = None,
                  profit: typing.Optional[typing.List[float]] = None,
                  no_draw: typing.Optional[bool] = None,
+                 max_process_time: typing.Optional[float] = None,
+                 total_max_wager_count: typing.Optional[int] = None,
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None,
                  **kwargs: typing.Any
@@ -27,7 +29,8 @@ class Event:
         self.wager_precision: float = float(wager_precision) if wager_precision is not None else self.DEFAULTS["wager_precision"]
         self.profit: typing.List[float] = [float(p) for p in profit] if profit is not None else self.DEFAULTS["profit"]
         self.no_draw: bool = no_draw if no_draw is not None else self.DEFAULTS["no_draw"]
-        
+        self.max_process_time: float = float(max_process_time) if max_process_time is not None else self.DEFAULTS["max_process_time"]
+        self.total_max_wager_count: int = int(total_max_wager_count) if total_max_wager_count is not None else self.DEFAULTS["total_max_wager_count"]
 
         self.bets: typing.List[BET_T] = []
         self.bookmakers: typing.List[BOOKMAKER_T] = []
@@ -160,6 +163,13 @@ class Event:
                             if bookmaker.id == bet_dict["bookmaker"]:
                                 bet_dict["bookmaker"] = bookmaker
                                 break
+                        else:
+                            if isinstance(bet_dict["bookmaker"], dict):
+                                new_bookmaker = Bookmaker.from_dict(bet_dict["bookmaker"])
+                            else:
+                                new_bookmaker = Bookmaker(id= bet_dict["bookmaker"])
+                            current_inst.add_bookmaker(new_bookmaker)
+                            bet_dict["bookmaker"] = new_bookmaker
                 try:
                     new_bet = cls._BET_CLASS.from_dict(bet_dict)
                 except Exception as err:
