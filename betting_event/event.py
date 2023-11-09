@@ -1,11 +1,17 @@
 import json
 import typing
+from enum import Enum
 from os import path
 
 from .bet import BET_T, Bet
 from .bookmaker import BOOKMAKER_T, Bookmaker
 
 GLOBAL_DEFAULTS: dict = json.load(open(path.join(path.dirname(__file__), "defaults.json"), "r"))["event"]
+
+class MODES(Enum):
+    GuaranteedProfit = 1
+    # ExpectedResults = 2
+    MaxProfit = 2
 
 class Event:
     DEFAULTS = GLOBAL_DEFAULTS
@@ -20,17 +26,21 @@ class Event:
                  no_draw: typing.Optional[bool] = None,
                  max_process_time: typing.Optional[float] = None,
                  total_max_wager_count: typing.Optional[int] = None,
+                 mode: typing.Optional[typing.Union[int, str]] = None,
                  bookmakers: typing.Optional[typing.List[BOOKMAKER_T]] = None,
                  bets: typing.Optional[typing.List[BET_T]] = None,
                  **kwargs: typing.Any
                  ) -> None:
-    
-        self.wager_limit: float = float(wager_limit) if wager_limit is not None else self.DEFAULTS["wager_limit"]
-        self.wager_precision: float = float(wager_precision) if wager_precision is not None else self.DEFAULTS["wager_precision"]
-        self.profit: typing.List[float] = [float(p) for p in profit] if profit is not None else self.DEFAULTS["profit"]
-        self.no_draw: bool = no_draw if no_draw is not None else self.DEFAULTS["no_draw"]
-        self.max_process_time: float = float(max_process_time) if max_process_time is not None else self.DEFAULTS["max_process_time"]
-        self.total_max_wager_count: int = int(total_max_wager_count) if total_max_wager_count is not None else self.DEFAULTS["total_max_wager_count"]
+
+        self.wager_limit: float = self.DEFAULTS["wager_limit"] if wager_limit is None else float(wager_limit)
+        self.wager_precision: float = self.DEFAULTS["wager_precision"] if wager_precision is None else float(wager_precision)
+        self.profit: typing.List[float] = self.DEFAULTS["profit"] if profit is None else [float(p) for p in profit]
+        self.no_draw: bool = self.DEFAULTS["no_draw"] if no_draw is None else bool(no_draw)
+        self.max_process_time: float = self.DEFAULTS["max_process_time"] if max_process_time is None else float(max_process_time)
+        self.total_max_wager_count: int = self.DEFAULTS["total_max_wager_count"] if total_max_wager_count is None else int(total_max_wager_count)
+        if mode is None:
+            mode = self.DEFAULTS["mode"]
+        self.mode: MODES = MODES(mode) if not isinstance(mode, str) else MODES[mode]
 
         self.bets: typing.List[BET_T] = []
         self.bookmakers: typing.List[BOOKMAKER_T] = []
@@ -78,7 +88,7 @@ class Event:
             Event: This event object.
         """
         pass
-    
+
     @typing.overload
     def add_bet(self: 'EVENT_T', _new_bets: typing.List[BET_T]) -> 'EVENT_T':
         """Adds multiple bets to the event. Faster that adding them individually.
@@ -126,6 +136,9 @@ class Event:
         result.update(result.pop("_Event__kwargs", {}))
         if not result["errors"]:
             del result["errors"]
+
+        if "mode" in result:
+            result["mode"] = result["mode"].name
 
         result["bookmakers"] = [bookmaker.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bookmaker in self.bookmakers]
         result["bets"] = [bet.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bet in self.bets if not(wagers_only) or bet.wager != 0 or bet.previous_wager != 0]
