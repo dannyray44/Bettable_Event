@@ -128,6 +128,10 @@ class Event:
         """
         result = self.__dict__.copy()
         # result["_Event__kwargs"]["errors"].extend(result["errors"])
+
+        if "mode" in result:
+            result["mode"] = result["mode"].value
+
         for key in list(result.keys()):
             if key == "_Event__kwargs" or key == "errors":
                 continue
@@ -136,9 +140,6 @@ class Event:
         result.update(result.pop("_Event__kwargs", {}))
         if not result["errors"]:
             del result["errors"]
-
-        if "mode" in result:
-            result["mode"] = result["mode"].name
 
         result["bookmakers"] = [bookmaker.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bookmaker in self.bookmakers]
         result["bets"] = [bet.as_dict(verbose= verbose, necessary_keys_only= necessary_keys_only) for bet in self.bets if not(wagers_only) or bet.wager != 0 or bet.previous_wager != 0]
