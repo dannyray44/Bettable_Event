@@ -24,6 +24,7 @@ class BetType(enum.Enum):
     TotalGoals = 14
     Team_ExactGoals = 15
     Team_ScoreAGoal = 16
+    DrawNoBet = 17
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
@@ -113,6 +114,11 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
             TEAM: Must be `home` or `away`.
             SWITCH: Must be `yes` or `no`""",
         ['home yes', 'away no', 'home no', 'away yes']),
+
+    BetType.DrawNoBet:              (re.compile(r"^(home|away)$"),
+        """Value string must be formatted as `TEAM`:
+            TEAM: Must be `home` or `away`""",
+        ['home', 'away'])
 }
 
 DefaultsType = typing.TypedDict("DefaultsType", {

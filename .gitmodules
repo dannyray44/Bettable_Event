@@ -1,0 +1,3 @@
+[submodule "API-Documentation"]
+	path = API-Documentation
+	url = https://github.com/Win-Wise/API-Documentation.git
