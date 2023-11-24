@@ -47,4 +47,8 @@ coverage.xml
 # virtualenv
 .venv/
 
+# dev env
 .vscode
+
+# conifg files
+betting_event/defaults.json

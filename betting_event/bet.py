@@ -4,7 +4,8 @@ import re
 import typing
 from os.path import dirname, join
 
-from .bookmaker import Bookmaker, BOOKMAKER_T
+from .bookmaker import BOOKMAKER_T, Bookmaker
+
 
 class BetType(enum.Enum):
     """Enum of currently accepted bet types"""

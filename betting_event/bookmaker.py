@@ -3,7 +3,6 @@ import json
 import typing
 from os.path import dirname, join
 
-
 GLOBAL_DEFAULTS = json.load(open(join(dirname(__file__), "defaults.json"), "r"))["bookmaker"]
 
 class Bookmaker:
