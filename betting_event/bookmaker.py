@@ -27,11 +27,11 @@ class Bookmaker:
             lowest_valid_wager (float): The minimum wager size accepted by this bookmaker. Defaults to 0.01.
         """
         self.id = id if id is not None else next(self.__ID_COUNTER)
-        self.commission = self.DEFAULTS["commission"] if commission is None else commission
-        self.wager_limit = self.DEFAULTS["wager_limit"] if wager_limit is None else wager_limit
+        self.commission = self.DEFAULTS["commission"] if commission is None else float(commission)
+        self.wager_limit = self.DEFAULTS["wager_limit"] if wager_limit is None else float(wager_limit)
         self.ignore_wager_precision = self.DEFAULTS["ignore_wager_precision"] if ignore_wager_precision is None else ignore_wager_precision
         self.max_wager_count = self.DEFAULTS["max_wager_count"] if max_wager_count is None else max_wager_count
-        self.lowest_valid_wager = self.DEFAULTS["lowest_valid_wager"] if lowest_valid_wager is None else lowest_valid_wager
+        self.lowest_valid_wager = self.DEFAULTS["lowest_valid_wager"] if lowest_valid_wager is None else float(lowest_valid_wager)
 
         self.__kwargs: typing.Dict[str, typing.Any] = kwargs
 
