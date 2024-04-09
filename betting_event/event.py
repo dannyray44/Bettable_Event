@@ -159,7 +159,7 @@ class Event:
         for key in __event_dict:
             if key in ["bookmakers", "bets"]:
                 continue
-            if key in __event_dict:
+            if key in cls.DEFAULTS:
                 clean_dict[key] = __event_dict[key]
 
         current_inst = cls(**clean_dict)
