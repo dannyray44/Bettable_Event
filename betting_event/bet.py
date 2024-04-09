@@ -26,6 +26,7 @@ class BetType(enum.Enum):
     Team_ExactGoals = 15
     Team_ScoreAGoal = 16
     DrawNoBet = 17
+    # Team_GoalsRange = 18
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
