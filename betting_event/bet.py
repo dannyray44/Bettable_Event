@@ -26,7 +26,9 @@ class BetType(enum.Enum):
     Team_ExactGoals = 15
     Team_ScoreAGoal = 16
     DrawNoBet = 17
-    # Team_GoalsRange = 18
+
+    Team_GoalsRange = 18
+    BothTeamsToScore_OverUnder = 19
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
@@ -120,7 +122,21 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
     BetType.DrawNoBet:              (re.compile(r"^(home|away)$"),
         """Value string must be formatted as `TEAM`:
             TEAM: Must be `home` or `away`""",
-        ['home', 'away'])
+        ['home', 'away']),
+
+    BetType.Team_GoalsRange:        (re.compile(r"^(home|away) ([0-9]{1,4})-([0-9]{1,4})$"),
+        """Value string must be formatted as `TEAM MIN-MAX`:
+            TEAM: Must be `home` or `away`.
+            MIN: Must be a positive integer.
+            MAX: Must be a positive integer greater than MIN.""",
+        ['home 2-3', 'away 4-5']),
+
+    BetType.BothTeamsToScore_OverUnder: (re.compile(r"^(yes|no) (over|under) ([0-9]{1,4}).5$"),
+        """Value string must be formatted as `SWITCH POSITION NUMBER`:
+            SWITCH: Must be `yes` or `no`.
+            POSITION: Must be `over` or `under`.
+            NUMBER: Must be a float divisible by 0.5.""",
+        ['yes over 2.5', 'no under 3.5']),
 }
 
 DefaultsType = typing.TypedDict("DefaultsType", {
