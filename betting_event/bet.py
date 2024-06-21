@@ -264,7 +264,8 @@ class Bet:
             str: The error message if the bet could not be created.
         """
         printable_dict = bet_dict.copy()
-        printable_dict["bookmaker"] = bet_dict["bookmaker"].id
+        if "bookmaker" in bet_dict and hasattr(bet_dict["bookmaker"], "id"):
+            printable_dict["bookmaker"] = bet_dict["bookmaker"].id
 
         for required_key in ["bet_type", "value", "odds"]:
             if required_key not in bet_dict:
