@@ -29,6 +29,7 @@ class BetType(enum.Enum):
 
     Team_GoalsRange = 18
     BothTeamsToScore_OverUnder = 19
+    TotalGoalsRange = 20
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
     BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$", re.IGNORECASE), 
@@ -52,9 +53,10 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
         ['yes', 'no']),
 
     BetType.ExactScore:             (re.compile(r"([0-9]{1,4}):([0-9]{1,4})"),
-        """Value string must be formatted as `HOME_SCORE:AWAY_SCORE`:
-            HOME_SCORE and AWAY_SCORE: Must be an integer number between 0 and 9999.""",
-        ['2:1']),
+        """Value string must contain at least one `HOME_SCORE:AWAY_SCORE`:
+            HOME_SCORE and AWAY_SCORE: Must be an integer number between 0 and 9999.
+            Multiple scores can be separated by a space (or comma). E.g. `2:1 0:0 0:1 1:1""",
+        ['2:1', '0:0 0:1 1:1']),
 
     BetType.DoubleChance:           (re.compile(r"^(home|draw|away)\/(home|draw|away)$", re.IGNORECASE),
         """Value string must be formatted as `RESULT_A/RESULT_B`
@@ -137,6 +139,12 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
             POSITION: Must be `over` or `under`.
             NUMBER: Must be a float divisible by 0.5.""",
         ['yes over 2.5', 'no under 3.5']),
+
+    BetType.TotalGoalsRange:        (re.compile(r"^([0-9]{1,4})-([0-9]{1,4})$"),
+        """Value string must be formatted as `MIN-MAX`:
+            MIN: Must be a positive integer.
+            MAX: Must be a positive integer greater than MIN.""",
+        ['2-3', '4-6']),
 }
 
 DefaultsType = typing.TypedDict("DefaultsType", {
