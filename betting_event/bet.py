@@ -31,73 +31,73 @@ class BetType(enum.Enum):
     BothTeamsToScore_OverUnder = 19
 
 ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[str]]] = {
-    BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$"), 
+    BetType.MatchWinner:            (re.compile(r"^(home|draw|away)$", re.IGNORECASE), 
         "Value string must be `home` `draw` or `away`.",
         ['home', 'draw', 'away']),
 
-    BetType.AsianHandicap:          (re.compile(r"^(home|away) ([+-]?\d+(?:\.(?:0|25|5|75))?)$"),
+    BetType.AsianHandicap:          (re.compile(r"^(home|away) ([+-]?\d+(?:\.(?:0|25|5|75))?)$", re.IGNORECASE),
         """Value string must be formatted as `TEAM NUMBER`:
             TEAM: Must be `home` or `away`.
             NUMBER: Must be a float divisible by 0.25 (Or 0.0). Negative and positive values are valid.""",
         ['home -0.75', 'away -3.0', 'home 4.25', 'away 1.75']),
 
-    BetType.Goals_OverUnder:        (re.compile(r"^(over|under) ([+-]?\d+(?:\.(?:0|25|5|75))?)$"),
+    BetType.Goals_OverUnder:        (re.compile(r"^(over|under) ([+-]?\d+(?:\.(?:0|25|5|75))?)$", re.IGNORECASE),
         """Value string must be formatted as `POSITION NUMBER`:
             POSITION: Must be `over` or `under`.
             NUMBER: Must be a float divisible by 0.25.""",
         ['over 0.75', 'under 3.0', 'over 4.25', 'under 1.75']),
 
-    BetType.BothTeamsToScore:       (re.compile(r"^(yes|no)$"),
+    BetType.BothTeamsToScore:       (re.compile(r"^(yes|no)$", re.IGNORECASE),
         "Value string must be either `yes` or `no`",
         ['yes', 'no']),
 
-    BetType.ExactScore:             (re.compile(r"^([0-9]{1,4}):([0-9]{1,4})$"),
+    BetType.ExactScore:             (re.compile(r"([0-9]{1,4}):([0-9]{1,4})"),
         """Value string must be formatted as `HOME_SCORE:AWAY_SCORE`:
             HOME_SCORE and AWAY_SCORE: Must be an integer number between 0 and 9999.""",
         ['2:1']),
 
-    BetType.DoubleChance:           (re.compile(r"^(home|draw|away)\/(home|draw|away)$"),
+    BetType.DoubleChance:           (re.compile(r"^(home|draw|away)\/(home|draw|away)$", re.IGNORECASE),
         """Value string must be formatted as `RESULT_A/RESULT_B`
             RESULT_A and RESULT_B: Must be `home`, `draw` or `away`. And RESULT_A != RESULT_B""",
         ['home/draw', 'home/away', 'draw/home', 'draw/away', 'away/home', 'away/draw']),
 
-    BetType.Team_OverUnder:         (re.compile(r"^(home|away) (over|under) ([0-9]{1,4}).5$"),
+    BetType.Team_OverUnder:         (re.compile(r"^(home|away) (over|under) ([0-9]{1,4}).5$", re.IGNORECASE),
         """Value string must be formatted as `TEAM POSITION NUMBER`:
             TEAM: Must be `home` or `away`.
             POSITION: Must be `over` or `under`.
             NUMBER: Must a float divisible by 0.5 between 0.5 and 9999.5.""",
         ['home over 2.5', 'away under 0.5']),
 
-    BetType.OddEven:                (re.compile(r"^(odd|even)$"),
+    BetType.OddEven:                (re.compile(r"^(odd|even)$", re.IGNORECASE),
         """Value string must be either `odd` or `even`""",
         ['odd', 'even']),
 
-    BetType.Team_OddEven:           (re.compile(r"^(home|away) (odd|even)$"),
+    BetType.Team_OddEven:           (re.compile(r"^(home|away) (odd|even)$", re.IGNORECASE),
         """Value string must be formatted as `TEAM EVENNESS`:
             TEAM: Must be `home` or `away`.
             EVENNESS: Must be `odd` or `even`""",
         ['home odd', 'away even', 'home even', 'away odd']), 
 
-    BetType.Result_BothTeamsScore:  (re.compile(r"^(home|draw|away)\/(yes|no)$"),
+    BetType.Result_BothTeamsScore:  (re.compile(r"^(home|draw|away)\/(yes|no)$", re.IGNORECASE),
         """Value string must be formatted as `RESULT/SWITCH`:
             RESULT: Must be `home`, `draw` or `away`.
             SWITCH: Must be `yes` or `no`""",
         ['home/yes', 'draw/no', 'away/yes','home/no', 'draw/yes', 'away/no']),
 
-    BetType.Result_OverUnder:       (re.compile(r"^(home|draw|away)\/(over|under) ([0-9]{1,4}).5$"),
+    BetType.Result_OverUnder:       (re.compile(r"^(home|draw|away)\/(over|under) ([0-9]{1,4}).5$", re.IGNORECASE),
         """Value string must be formatted as `RESULT/POSITION NUMBER`:
             RESULT: Must be `home`, `draw` or `away`.
             POSITION: Must be `over` or `under`.
             NUMBER: Must be a float divisible by 0.5. Only positive values are valid.""",
         ['home/over 2.5', 'draw/under 3.5', 'away/over 4.5', 'draw/under 0.5']),
 
-    BetType.TeamCleanSheet:         (re.compile(r"^(home|away) (yes|no)$"),
+    BetType.TeamCleanSheet:         (re.compile(r"^(home|away) (yes|no)$", re.IGNORECASE),
         """Value string must be formatted as `TEAM CLEAN_SHEET`:
             TEAM: Must be `home` or `away`.
             CLEAN_SHEET: Must be `yes` or `no`""",
         ['home yes', 'away no']),
 
-    BetType.Team_WinToNil:          (re.compile(r"^(home|away) (yes|no)$"),
+    BetType.Team_WinToNil:          (re.compile(r"^(home|away) (yes|no)$", re.IGNORECASE),
         """Value string must be formatted as `TEAM WIN_TO_NIL`:
             TEAM: Must be `home` or `away`.
             WIN_TO_NIL: Must be `yes` or `no`""",
@@ -107,31 +107,31 @@ ValueCheck: typing.Dict[BetType, typing.Tuple[typing.Pattern, str, typing.List[s
         """Value string must be formatted as an integer.""",
         ['2', '3', '4']),
 
-    BetType.Team_ExactGoals:        (re.compile(r"^(home|away) ([0-9]{1,4})$"),
+    BetType.Team_ExactGoals:        (re.compile(r"^(home|away) ([0-9]{1,4})$", re.IGNORECASE),
         """Value string must be formatted as `TEAM NUMBER`:
             TEAM: Must be `home` or `away`.
             NUMBER: Must be a positive integer.""",
             ['home 2', 'away 3']),
 
-    BetType.Team_ScoreAGoal:        (re.compile(r"^(home|away) (yes|no)$"),
+    BetType.Team_ScoreAGoal:        (re.compile(r"^(home|away) (yes|no)$", re.IGNORECASE),
         """Value string must be formatted as `TEAM SWITCH`:
             TEAM: Must be `home` or `away`.
             SWITCH: Must be `yes` or `no`""",
         ['home yes', 'away no', 'home no', 'away yes']),
 
-    BetType.DrawNoBet:              (re.compile(r"^(home|away)$"),
+    BetType.DrawNoBet:              (re.compile(r"^(home|away)$", re.IGNORECASE),
         """Value string must be formatted as `TEAM`:
             TEAM: Must be `home` or `away`""",
         ['home', 'away']),
 
-    BetType.Team_GoalsRange:        (re.compile(r"^(home|away) ([0-9]{1,4})-([0-9]{1,4})$"),
+    BetType.Team_GoalsRange:        (re.compile(r"^(home|away) ([0-9]{1,4})-([0-9]{1,4})$", re.IGNORECASE),
         """Value string must be formatted as `TEAM MIN-MAX`:
             TEAM: Must be `home` or `away`.
             MIN: Must be a positive integer.
             MAX: Must be a positive integer greater than MIN.""",
         ['home 2-3', 'away 4-5']),
 
-    BetType.BothTeamsToScore_OverUnder: (re.compile(r"^(yes|no) (over|under) ([0-9]{1,4}).5$"),
+    BetType.BothTeamsToScore_OverUnder: (re.compile(r"^(yes|no) (over|under) ([0-9]{1,4}).5$", re.IGNORECASE),
         """Value string must be formatted as `SWITCH POSITION NUMBER`:
             SWITCH: Must be `yes` or `no`.
             POSITION: Must be `over` or `under`.
@@ -203,7 +203,7 @@ class Bet:
         self.wager: float = self.DEFAULTS['wager'] if wager is None else float(wager)
         self.__kwargs: typing.Dict[str, typing.Any] = kwargs
 
-        if ValueCheck[self.bet_type][0].fullmatch(self.value.lower()) is None:
+        if not ValueCheck[self.bet_type][0].findall(self.value)[0]:
             raise ValueError( f"Bet value '{self.value}' is not valid for bet type " +
                 f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " +
                 f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}")
