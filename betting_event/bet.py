@@ -211,7 +211,9 @@ class Bet:
         self.wager: float = self.DEFAULTS['wager'] if wager is None else float(wager)
         self.__kwargs: typing.Dict[str, typing.Any] = kwargs
 
-        if not ValueCheck[self.bet_type][0].findall(self.value)[0]:
+        _matches = ValueCheck[self.bet_type][0].findall(self.value)
+
+        if not _matches or not _matches[0]:
             raise ValueError( f"Bet value '{self.value}' is not valid for bet type " +
                 f"{self.bet_type.name} ({self.bet_type.value}).\nExpected regex format: " +
                 f"'{ValueCheck[self.bet_type][0].pattern}'\n{ValueCheck[self.bet_type][1]}")
