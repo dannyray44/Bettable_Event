@@ -40,7 +40,12 @@ class Event:
         self.total_max_wager_count: int = self.DEFAULTS["total_max_wager_count"] if total_max_wager_count is None else int(total_max_wager_count)
         if mode is None:
             mode = self.DEFAULTS["mode"]
-        self.mode: MODES = MODES(mode) if not isinstance(mode, str) else MODES[mode]
+
+        try:
+            self.mode: MODES = MODES(mode) if not isinstance(mode, str) else MODES[mode]
+        except ValueError:
+            kwargs["errors"] = kwargs.get("errors", []) + [f'Inappropriate "mode": {mode}. Valid modes are: {", ".join([f"{mode.name}: {mode.value}" for mode in MODES])}']
+            self.mode = MODES(1)
 
         self.bets: typing.List[BET_T] = []
         self.bookmakers: typing.List[BOOKMAKER_T] = []
