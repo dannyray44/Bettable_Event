@@ -12,6 +12,7 @@ class MODES(Enum):
     GuaranteedProfit = 1
     # ExpectedResults = 2
     MaxProfit = 2
+    ForceWager = 3
 
 class Event:
     DEFAULTS = GLOBAL_DEFAULTS
