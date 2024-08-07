@@ -199,11 +199,11 @@ class Event:
 
             current_inst.add_bet(new_bets)
 
-        # if not current_inst.wager_limit:
-        #     if all(bookmaker.wager_limit == -1 for bookmaker in current_inst.bookmakers):
-        #         current_inst.wager_limit = 100.0
-        #     else:
-        #         current_inst.wager_limit = sum(bookmaker.wager_limit for bookmaker in current_inst.bookmakers if bookmaker.wager_limit != -1)
+        if current_inst.wager_limit == -1:
+            if all(bookmaker.wager_limit == -1 for bookmaker in current_inst.bookmakers):
+                current_inst.wager_limit = 100.0
+            else:
+                current_inst.wager_limit = sum(bookmaker.wager_limit for bookmaker in current_inst.bookmakers if bookmaker.wager_limit != -1)
 
         if not isinstance(current_inst.wager_limit, float) or (current_inst.wager_limit < 0 and current_inst.wager_limit != -1):
             current_inst.errors.append(f'Inappropriate "wager_limit": {current_inst.wager_limit} must be a positive float or -1')
